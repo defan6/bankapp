@@ -1,0 +1,178 @@
+services:
+  # ---------------- Инфраструктура ----------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=bankapp
+      - POSTGRES_PASSWORD=bankapp
+      - POSTGRES_DB=bankapp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+  
+  # ---------------- Observability ----------------
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana-oss:10.1.5
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # ---------------- Микросервисы ----------------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - redis
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=super-secret-key-that-should-be-in-a-vault
+
+  account-service:
+    build:
+      context: .
+      dockerfile: services/account-service/Dockerfile
+    container_name: account-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      
+  transaction-service:
+    build:
+      context: .
+      dockerfile: services/transaction-service/Dockerfile
+    container_name: transaction-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  history-service:
+    build:
+      context: .
+      dockerfile: services/history-service/Dockerfile
+    container_name: history-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    container_name: analytics-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - clickhouse
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  scheduler-service:
+    build:
+      context: .
+      dockerfile: services/scheduler-service/Dockerfile
+    container_name: scheduler-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  grafana_data:

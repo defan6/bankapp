@@ -1,0 +1,43 @@
+# ===================================
+#      ОБЩИЕ НАСТРОЙКИ
+# ===================================
+spring:
+  application:
+    name: notification-service
+  kafka:
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+server:
+  port: 8085
+logging:
+  level:
+    root: INFO
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
+---
+# ===================================
+#    ПРОФИЛЬ 'docker' (по умолчанию)
+# ===================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  kafka:
+    bootstrap-servers: kafka:9092
+---
+# ===================================
+#       ПРОФИЛЬ 'local'
+# ===================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  kafka:
+    bootstrap-servers: localhost:29092

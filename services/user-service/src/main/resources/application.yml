@@ -1,0 +1,65 @@
+# ===================================
+#      ОБЩИЕ НАСТРОЙКИ
+# ===================================
+spring:
+  application:
+    name: user-service
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  jpa:
+    hibernate:
+      ddl-auto: validate # Liquibase будет управлять схемой, поэтому Spring Boot должен только проверять её
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    consumer:
+      group-id: user-service-group
+      auto-offset-reset: earliest
+server:
+  port: 8081 # Уникальный порт для локального запуска
+logging:
+  level:
+    root: INFO
+app:
+  jwt:
+    secret: ${JWT_SECRET:super-secret-key-that-should-be-in-a-vault} # Дефолтное значение для локального запуска
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always
+---
+# ===================================
+#    ПРОФИЛЬ 'docker' (по умолчанию)
+# ===================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/bankapp
+    username: bankapp
+    password: bankapp
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: kafka:9092
+---
+# ===================================
+#       ПРОФИЛЬ 'local'
+# ===================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bankapp
+    username: bankapp
+    password: bankapp
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: localhost:29092
