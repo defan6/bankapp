@@ -4,7 +4,7 @@ services:
     image: postgres:15-alpine
     container_name: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=bankapp
       - POSTGRES_PASSWORD=bankapp
@@ -23,8 +23,8 @@ services:
     image: confluentinc/cp-kafka:7.5.3
     container_name: kafka
     ports:
-      - "9092:9092"
-      - "29092:29092"
+      - "9098:9092"
+      - "29098:29092"
     depends_on:
       - zookeeper
     environment:
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.8
@@ -93,6 +93,8 @@ services:
       - redis
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   user-service:
     build:
@@ -107,6 +109,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=super-secret-key-that-should-be-in-a-vault
+    profiles:
+      - docker
 
   account-service:
     build:
@@ -120,7 +124,9 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      
+    profiles:
+      - docker
+
   transaction-service:
     build:
       context: .
@@ -133,6 +139,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   history-service:
     build:
@@ -146,6 +154,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   notification-service:
     build:
@@ -158,6 +168,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   analytics-service:
     build:
@@ -171,6 +183,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   scheduler-service:
     build:
@@ -184,6 +198,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
 volumes:
   postgres_data:
