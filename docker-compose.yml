@@ -35,6 +35,19 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
+  # ДОБАВЛЯЕМ СЕРВИС SCHEMA REGISTRY
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.3 # Используем ту же версию, что и Kafka
+    container_name: schema-registry
+    ports:
+      - "8081:8081" # Стандартный порт Schema Registry
+    depends_on:
+      - kafka # Зависит от Kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092' # Указываем на наш Kafka брокер
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081 # Где Schema Registry будет слушать
+
   redis:
     image: redis:7-alpine
     container_name: redis

@@ -21,6 +21,8 @@ allprojects {
 
     repositories {
         mavenCentral()
+        // ДОБАВЛЯЕМ ЭТОТ РЕПОЗИТОРИЙ
+        maven { url = uri("https://packages.confluent.io/maven/") }
     }
 }
 
