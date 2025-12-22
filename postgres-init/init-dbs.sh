@@ -3,7 +3,7 @@ set -e
 
 # Эта функция вызывается официальным entrypoint скриптом Postgres.
 # Она использует переменные окружения POSTGRES_USER и POSTGRES_DB из docker-compose.yml.
-# Мы подключаемся к основной БД ($POSTGRES_DB) от имени суперпользователя ($POSTGRES_USER) 
+# Мы подключаемся к основной БД ($POSTGRES_DB) от имени суперпользователя ($POSTGRES_USER)
 # и создаем новые БД и роли для каждого микросервиса.
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL

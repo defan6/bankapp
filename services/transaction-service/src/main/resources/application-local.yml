@@ -12,3 +12,15 @@ spring:
       config:
         account-service: # имя Feign клиента из @FeignClient(name = "account-service")
           url: http://localhost:8082 # Локальный порт Account Service
+server:
+  port: 8083
+
+management:
+  otlp:
+    endpoint: http://localhost:4318
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces

@@ -3,3 +3,15 @@ spring:
     bootstrap-servers: localhost:29098
     properties:
       schema.registry.url: http://localhost:8081 # Для локального запуска
+server:
+  port: 8085
+
+management:
+  otlp:
+    endpoint: http://localhost:4318
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces
