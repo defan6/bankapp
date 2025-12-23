@@ -2,16 +2,22 @@
 FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /app
 
-# Копируем скрипты и файлы сборки
+# Копируем скрипты и файлы сборки для кэширования зависимостей
 COPY gradlew .
 COPY gradle ./gradle
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+COPY common/build.gradle.kts ./common/build.gradle.kts
+COPY services/scheduler-service/build.gradle.kts ./services/scheduler-service/build.gradle.kts
 RUN chmod +x gradlew
+
+# Загружаем зависимости, чтобы они были в отдельном кэшируемом слое
+RUN ./gradlew :services:scheduler-service:dependencies
 
 # Копируем исходный код
 COPY common ./common
 COPY services/scheduler-service ./services/scheduler-service
+COPY contracts ./contracts
 
 # Собираем JAR-файл
 RUN ./gradlew :services:scheduler-service:bootJar -x test
