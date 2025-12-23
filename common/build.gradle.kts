@@ -1,69 +1,115 @@
-// common/build.gradle.kts
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+import java.util.Locale
+
 plugins {
-    id("java-library") // Явно объявляем, что это библиотечный модуль
-    id("org.openapi.generator") version "7.0.0" // Добавляем плагин OpenAPI Generator
+    id("java-library")
+    id("org.openapi.generator") version "7.0.0"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.8.0"
 }
 
-// Этот проект будет JAR-файлом, а не исполняемым Spring Boot приложением.
-// Поэтому отключаем стандартную задачу сборки Spring Boot.
-tasks.getByName("bootJar") {
+tasks.named("bootJar") {
     enabled = false
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+/* ---------------- DEPENDENCIES ---------------- */
+
 dependencies {
-    // Зависимость от Kafka, чтобы определять события
     implementation("org.springframework.kafka:spring-kafka")
-    // Зависимость от JPA для общих Entities, если они будут
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    // Для Feign Client интерфейсов
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
-    // Дополнительные зависимости, требуемые сгенерированным Feign-клиентом
-    // spring-boot-starter-web уже подключен для всех подпроектов в корневом build.gradle.kts
-    implementation("jakarta.validation:jakarta.validation-api") // Для аннотаций валидации
-    implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.16") // Для аннотаций @Schema и т.д.
-
-
+    implementation("jakarta.validation:jakarta.validation-api")
+    implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.16")
 
     implementation("io.confluent:kafka-avro-serializer:7.5.1")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 }
 
-// Конфигурация OpenAPI Generator
-openApiGenerate {
-    generatorName.set("spring")
-    inputSpec.set("$rootDir/contracts/api/openapi.yaml")
-    outputDir.set("${layout.buildDirectory.get()}/generated/sources/openapi")
-    apiPackage.set("com.bankapp.common.client.api")
-    modelPackage.set("com.bankapp.common.client.model")
-    configOptions.set(mapOf(
-        "interfaceOnly" to "true",
-        "useSpringBoot3" to "true",
-        "useJakartaEe" to "true",
-        "java8" to "false",
-        "dateLibrary" to "java17",
-        "serializationLibrary" to "jackson"
-    ))
+/* ---------------- OPENAPI GENERATION ---------------- */
+
+val openApiOutputDir = layout.buildDirectory.dir("generated/sources/openapi")
+val openApiTasks = mutableListOf<TaskProvider<GenerateTask>>()
+
+fileTree("$rootDir/contracts/api") {
+    include("**/*-api.v1.yaml")
+    exclude("**/common/**")
+}.files.forEach { specFile ->
+
+    val serviceDir = specFile.parentFile.name // account-service
+    val servicePackage = serviceDir.replace("-", "")
+    val taskSuffix = serviceDir
+        .split("-")
+        .joinToString("") { it.replaceFirstChar { c -> c.titlecase(Locale.getDefault()) } }
+
+    val task = tasks.register<GenerateTask>("generate${taskSuffix}Api") {
+        group = "openapi"
+        description = "Generate OpenAPI client for $serviceDir"
+
+        generatorName.set("spring")
+        inputSpec.set(specFile.absolutePath)
+        outputDir.set(openApiOutputDir.map { it.dir(serviceDir).asFile.path })
+
+        apiPackage.set("com.bankapp.common.client.$servicePackage.api")
+        modelPackage.set("com.bankapp.common.client.$servicePackage.model")
+
+        configOptions.set(
+            mapOf(
+                "interfaceOnly" to "true",
+                "library" to "spring-cloud",
+                "useSpringBoot3" to "true",
+                "useJakartaEe" to "true",
+                "dateLibrary" to "java17",
+                "serializationLibrary" to "jackson"
+            )
+        )
+
+        globalProperties.set(
+            mapOf(
+                "apiDocs" to "false",
+                "modelDocs" to "false",
+                "apiTests" to "false",
+                "modelTests" to "false"
+            )
+        )
+    }
+
+    openApiTasks += task
 }
 
+/* ---------------- AVRO GENERATION ---------------- */
 
 tasks.named<com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask>("generateAvroJava") {
     source("$rootDir/contracts/events")
 }
 
-// Добавляем директорию сгенерированных исходников в основной набор исходников
+/* ---------------- SOURCES ---------------- */
+
 sourceSets {
     main {
         java {
-            srcDir(layout.buildDirectory.dir("generated/sources/openapi/src/main/java"))
+            // Avro — без изменений
             srcDir(layout.buildDirectory.dir("generated/sources/avro/java"))
+
+            // OpenAPI — ПРАВИЛЬНЫЕ java-root каталоги
+            file("$buildDir/generated/sources/openapi")
+                .listFiles()
+                ?.filter { it.isDirectory }
+                ?.forEach { serviceDir ->
+                    srcDir(serviceDir.resolve("src/main/java"))
+                }
         }
     }
 }
 
-// Гарантируем, что задача openApiGenerate выполняется перед compileJava
+/* ---------------- TASK ORDER ---------------- */
+
 tasks.named("compileJava") {
-    dependsOn(tasks.named("openApiGenerate"))
-    dependsOn(tasks.named("generateAvroJava"))
+    dependsOn(openApiTasks)
+    dependsOn("generateAvroJava")
 }
