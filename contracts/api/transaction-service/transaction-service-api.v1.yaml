@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Transaction Service API
+  version: 1.0.0
+  description: API for initiating and tracking money transfers.
+
+paths:
+  /api/transactions/transfer:
+    post:
+      summary: Initiate a funds transfer
+      operationId: transferFunds
+      tags:
+        - Transaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '202':
+          description: Transaction accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+
+  /api/transactions/{transactionId}:
+    get:
+      summary: Get transaction status
+      operationId: getTransactionStatus
+      tags:
+        - Transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transaction status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionDto'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TransferRequest:
+      type: object
+      properties:
+        fromAccountId:
+          type: string
+          format: uuid
+        toAccountId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+      required:
+        - fromAccountId
+        - toAccountId
+        - amount
+
+    TransactionDto:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, FAILED]
+        amount:
+          type: number
+          format: double

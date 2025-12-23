@@ -1,0 +1,33 @@
+{
+  "type": "record",
+  "name": "DebitFailed",
+  "namespace": "com.bankapp.events.account.v1",
+  "doc": "Event indicating that debiting funds from an account has failed.",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "Unique identifier for this event."
+    },
+    {
+      "name": "correlationId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "Identifier to correlate this event with a business transaction (e.g., transactionId)."
+    },
+    {
+      "name": "accountId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "The account from which debiting failed."
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "doc": "The reason for the failure (e.g., INSUFFICIENT_FUNDS)."
+    },
+    {
+      "name": "timestamp",
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "doc": "The timestamp when the failure occurred."
+    }
+  ]
+}

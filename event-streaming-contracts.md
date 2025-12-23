@@ -47,7 +47,7 @@
   ```json
   {
     "commandId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid", 
     "accountId": "uuid",
     "amount": "100.50",
     "currency": "RUB",
@@ -63,7 +63,7 @@
   ```json
   {
     "commandId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid", 
     "accountId": "uuid",
     "amount": "100.50",
     "currency": "RUB",
@@ -79,7 +79,7 @@
   ```json
   {
     "commandId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid", 
     "accountId": "uuid",
     "amount": "100.50",
     "currency": "RUB",
@@ -99,7 +99,7 @@
   ```json
   {
     "eventId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid", 
     "accountId": "uuid",
     "timestamp": "iso_datetime"
   }
@@ -113,7 +113,7 @@
   ```json
   {
     "eventId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid", 
     "accountId": "uuid",
     "reason": "INSUFFICIENT_FUNDS",
     "timestamp": "iso_datetime"
@@ -128,7 +128,7 @@
   ```json
   {
     "eventId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid",
     "accountId": "uuid",
     "timestamp": "iso_datetime"
   }
@@ -142,7 +142,7 @@
   ```json
   {
     "eventId": "uuid",
-    "correlationId": "uuid", // transactionId
+    "correlationId": "uuid",
     "accountId": "uuid",
     "reason": "ACCOUNT_CLOSED_OR_BLOCKED",
     "timestamp": "iso_datetime"

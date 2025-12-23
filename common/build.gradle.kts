@@ -33,10 +33,10 @@ dependencies {
 // Конфигурация OpenAPI Generator
 openApiGenerate {
     generatorName.set("spring")
-    inputSpec.set("$rootDir/contracts/api/account-service/account-service-api.v1.yaml")
+    inputSpec.set("$rootDir/contracts/api/openapi.yaml")
     outputDir.set("${layout.buildDirectory.get()}/generated/sources/openapi")
-    apiPackage.set("com.bankapp.common.client.account.api")
-    modelPackage.set("com.bankapp.common.client.account.model")
+    apiPackage.set("com.bankapp.common.client.api")
+    modelPackage.set("com.bankapp.common.client.model")
     configOptions.set(mapOf(
         "interfaceOnly" to "true",
         "useSpringBoot3" to "true",
