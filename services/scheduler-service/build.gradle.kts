@@ -9,3 +9,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 }
+
+tasks.named("compileJava") {
+    dependsOn(project(":common").tasks.matching { it.group == "openapi" })
+}

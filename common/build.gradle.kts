@@ -29,6 +29,14 @@ dependencies {
 
     implementation("io.confluent:kafka-avro-serializer:7.5.1")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+
+    // Lombok
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    // MapStruct
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 }
 
 /* ---------------- OPENAPI GENERATION ---------------- */
@@ -58,6 +66,8 @@ fileTree("$rootDir/contracts/api") {
         apiPackage.set("com.bankapp.common.client.$servicePackage.api")
         modelPackage.set("com.bankapp.common.client.$servicePackage.model")
 
+        apiNameSuffix.set("ApiV1") // suffix
+
         configOptions.set(
             mapOf(
                 "interfaceOnly" to "true",
@@ -65,7 +75,9 @@ fileTree("$rootDir/contracts/api") {
                 "useSpringBoot3" to "true",
                 "useJakartaEe" to "true",
                 "dateLibrary" to "java17",
-                "serializationLibrary" to "jackson"
+                "serializationLibrary" to "jackson",
+                "useTags" to "true"
+                // User, Account from contracts *.yaml
             )
         )
 
@@ -80,6 +92,15 @@ fileTree("$rootDir/contracts/api") {
     }
 
     openApiTasks += task
+
+    // Lazily add the generated sources to the source set
+    sourceSets.main.get().java.srcDir(
+        openApiOutputDir.map { it.dir(serviceDir).dir("src/main/java") }
+    )
+}
+
+tasks.withType<GenerateTask> {
+    apiNameSuffix.set("ApiV1")
 }
 
 /* ---------------- AVRO GENERATION ---------------- */
@@ -93,16 +114,8 @@ tasks.named<com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask>("gener
 sourceSets {
     main {
         java {
-            // Avro — без изменений
+            // Avro sources
             srcDir(layout.buildDirectory.dir("generated/sources/avro/java"))
-
-            // OpenAPI — ПРАВИЛЬНЫЕ java-root каталоги
-            file("$buildDir/generated/sources/openapi")
-                .listFiles()
-                ?.filter { it.isDirectory }
-                ?.forEach { serviceDir ->
-                    srcDir(serviceDir.resolve("src/main/java"))
-                }
         }
     }
 }

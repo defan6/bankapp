@@ -7,3 +7,7 @@ dependencies {
     // implementation("org.springframework.boot:spring-boot-starter-mail") // Раскомментировать для отправки email
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 }
+
+tasks.named("compileJava") {
+    dependsOn(project(":common").tasks.matching { it.group == "openapi" })
+}

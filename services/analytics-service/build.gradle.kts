@@ -8,3 +8,7 @@ dependencies {
     implementation("com.clickhouse:clickhouse-jdbc:0.5.0")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 }
+
+tasks.named("compileJava") {
+    dependsOn(project(":common").tasks.matching { it.group == "openapi" })
+}

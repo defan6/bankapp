@@ -15,6 +15,8 @@ tasks.wrapper {
     gradleVersion = "8.14"
 }
 
+
+
 allprojects {
     group = "com.bankapp"
     version = "0.0.1-SNAPSHOT"
@@ -51,5 +53,11 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+}
+
+project(":services") {
+    tasks.named("bootJar") {
+        enabled = false
     }
 }
