@@ -64,13 +64,26 @@ services:
       - clickhouse_data:/var/lib/clickhouse
   
   # ---------------- Observability ----------------
-  prometheus:
+  prometheus-local:
     image: prom/prometheus:v2.47.2
-    container_name: prometheus
+    container_name: prometheus-local
+    profiles: ["local"]
     ports:
       - "9090:9090"
     volumes:
-      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/local/prometheus-local.yml:/etc/prometheus/prometheus.yml
+
+
+
+  prometheus-docker:
+    image: prom/prometheus:v2.47.2
+    container_name: prometheus-docker
+    profiles: ["docker"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/docker/prometheus-docker.yml:/etc/prometheus/prometheus.yml
+
 
   grafana:
     image: grafana/grafana-oss:10.1.5

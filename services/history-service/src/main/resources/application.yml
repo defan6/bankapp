@@ -16,8 +16,6 @@ spring:
     consumer:
       group-id: history-service-group
       auto-offset-reset: earliest
-server:
-  port: 8084
 logging:
   level:
     root: INFO

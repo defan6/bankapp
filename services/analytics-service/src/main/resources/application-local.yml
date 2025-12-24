@@ -6,3 +6,5 @@ spring:
     driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
   kafka:
     bootstrap-servers: localhost:29098
+server:
+  port: 8086

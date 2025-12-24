@@ -17,11 +17,13 @@ dependencies {
 
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.30")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-
     // MapStruct
     compileOnly("org.mapstruct:mapstruct:1.5.5.Final")
+
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
 }
 
 tasks.named("compileJava") {
