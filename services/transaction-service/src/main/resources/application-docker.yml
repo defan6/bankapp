@@ -11,4 +11,8 @@ spring:
     client:
       config:
         account-service: # имя Feign клиента из @FeignClient(name = "account-service")
-          url: http://account-service:8082 # Имя Docker-сервиса
+          url: http://account-service:8080 # Имя Docker-сервиса
+
+
+server:
+  port: 8080

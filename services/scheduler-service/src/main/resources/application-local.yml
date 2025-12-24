@@ -6,3 +6,5 @@ spring:
     driver-class-name: org.postgresql.Driver
   kafka:
     bootstrap-servers: localhost:29098
+server:
+  port: 8087
