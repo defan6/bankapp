@@ -32,19 +32,31 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
+        // вынести логику извлечения токена в отдельный метод
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String token = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+            // String token = getToken(request)
+            // if(token != null) {
+            //  Optional<Authentication> authentication = authService.authenticate(token);
+            // authentication = optional.empty() если токен невалидный
+            // authentication = !optional.empty() если токен валидный и создался объект Authentication
+            //      SecurityContextHolder.getContext().setAuthentication(authentication);
+            // }
+
+
+            // вместо **
             if (jwtTokenService.validateToken(token)) {
                 filterChain.doFilter(request, response);
                 return;
             }
+            // **
         }
-
+        // *** (это все делегируется authService, а он делегирует jwtService)
         String username = jwtTokenService.extractUsername(token);
+
         List<String> role = jwtTokenService.extractRole(token);
 
         Set<SimpleGrantedAuthority> authorities = role.stream()
@@ -55,6 +67,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 username, null, authorities
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // ***
 
         filterChain.doFilter(request, response);
     }
