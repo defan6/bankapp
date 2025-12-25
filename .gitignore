@@ -35,3 +35,6 @@ out/
 .classpath
 .settings/
 *.iml
+
+# Path
+/bin
