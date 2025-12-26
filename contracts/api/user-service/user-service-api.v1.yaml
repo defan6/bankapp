@@ -109,12 +109,15 @@ components:
 
     LoginRequest:
       type: object
+
       properties:
         email:
           type: string
           format: email
         password:
           type: string
+          minLength: 3
+          maxLength: 32
           format: password
       required:
         - email

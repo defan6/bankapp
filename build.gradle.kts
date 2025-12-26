@@ -34,7 +34,9 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
+        toolchain{
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
     }
 
     dependencyManagement {

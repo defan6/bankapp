@@ -76,7 +76,8 @@ fileTree("$rootDir/contracts/api") {
                 "useJakartaEe" to "true",
                 "dateLibrary" to "java17",
                 "serializationLibrary" to "jackson",
-                "useTags" to "true"
+                "useTags" to "true",
+                "useBeanValidation" to "true"
                 // User, Account from contracts *.yaml
             )
         )
