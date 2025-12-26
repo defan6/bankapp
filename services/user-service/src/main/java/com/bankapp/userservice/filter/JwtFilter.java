@@ -1,22 +1,26 @@
 package com.bankapp.userservice.filter;
 
+import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,52 +28,38 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtTokenService jwtTokenService;
+    private final AuthService authService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getServletPath().startsWith("/api/auth/**")) {
+        if (request.getServletPath().startsWith("/api/users/login") || request.getServletPath().startsWith("/api/users/register")) {
             filterChain.doFilter(request, response);
             return;
         }
-        // вынести логику извлечения токена в отдельный метод
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String token = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            // String token = getToken(request)
-            // if(token != null) {
-            //  Optional<Authentication> authentication = authService.authenticate(token);
-            // authentication = optional.empty() если токен невалидный
-            // authentication = !optional.empty() если токен валидный и создался объект Authentication
-            //      SecurityContextHolder.getContext().setAuthentication(authentication);
-            // }
+        String token = extractToken(request);
 
+         if(token != null) {
+             Optional<Authentication> authentication = authService.authenticateToken(token);
 
-            // вместо **
-            if (jwtTokenService.validateToken(token)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-            // **
-        }
-        // *** (это все делегируется authService, а он делегирует jwtService)
-        String username = jwtTokenService.extractUsername(token);
+             authentication.ifPresent(auth ->
+                     SecurityContextHolder.getContext().setAuthentication(auth)
+             );
+         }
 
-        List<String> role = jwtTokenService.extractRole(token);
-
-        Set<SimpleGrantedAuthority> authorities = role.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                username, null, authorities
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // ***
 
         filterChain.doFilter(request, response);
     }
+
+     private String extractToken(HttpServletRequest request) {
+
+         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+         String token = null;
+
+         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+             token = authHeader.substring(7);
+         }
+
+         return token;
+     }
 }

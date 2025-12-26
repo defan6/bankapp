@@ -3,10 +3,16 @@ package com.bankapp.userservice.service.impl;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +38,20 @@ public class DefaultJwtTokenService implements JwtTokenService {
     @Override
     public boolean validateToken(String token) {
         return jwtUtil.isTokenValid(token);
+    }
+
+    @Override
+    public UsernamePasswordAuthenticationToken authenticate(String token) {
+        String username = extractUsername(token);
+
+        List<String> role = extractRole(token);
+
+        Set<SimpleGrantedAuthority> authorities = role.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+
+        return new UsernamePasswordAuthenticationToken (
+                username, null, authorities
+        );
     }
 }

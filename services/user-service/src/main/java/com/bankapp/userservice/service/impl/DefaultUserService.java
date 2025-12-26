@@ -16,18 +16,9 @@ public class DefaultUserService implements UserService {
 
     private final AuthService authService;
 
-    private final UserRepository userRepository;
-
-    private final UserMapper userMapper;
-
-    private final PasswordEncoder passwordEncoder;
-
     @Override
     public RegisterResponse registerUser(RegisterRequest request) {
-        User user = userMapper.toUser(request);
-        user.getRoles().add("ROLE_USER");
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return userMapper.toRegisterResponse(userRepository.save(user));
+        return authService.register(request);
     }
 
     @Override

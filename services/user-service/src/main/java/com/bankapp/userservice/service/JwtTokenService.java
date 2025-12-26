@@ -1,6 +1,10 @@
 package com.bankapp.userservice.service;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface JwtTokenService {
@@ -12,4 +16,6 @@ public interface JwtTokenService {
     List<String> extractRole(String token);
 
     boolean validateToken(String token);
+
+    UsernamePasswordAuthenticationToken authenticate(String token);
 }
