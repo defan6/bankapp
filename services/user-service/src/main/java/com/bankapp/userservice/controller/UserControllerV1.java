@@ -2,6 +2,8 @@ package com.bankapp.userservice.controller;
 
 import com.bankapp.common.client.userservice.api.UserApiV1;
 import com.bankapp.common.client.userservice.model.*;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenRequest;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
 import com.bankapp.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,7 @@ public class UserControllerV1 implements UserApiV1 {
 
     @Override
     public ResponseEntity<UserResponse> getCurrentUser() {
-        return null;
+        return ResponseEntity.ok(userService.getCurrentUser());
     }
 
     @Override
@@ -40,5 +42,14 @@ public class UserControllerV1 implements UserApiV1 {
                 .toUri();
 
         return ResponseEntity.created(location).body(response);
+    }
+
+//    public void logout() {
+//
+//    }
+//
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponse> refreshAccessToken(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(userService.refreshToken(request));
     }
 }

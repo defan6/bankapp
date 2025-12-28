@@ -1,15 +1,16 @@
 package com.bankapp.userservice.service.impl;
 
-import com.bankapp.common.client.userservice.model.LoginRequest;
-import com.bankapp.common.client.userservice.model.LoginResponse;
-import com.bankapp.common.client.userservice.model.RegisterRequest;
-import com.bankapp.common.client.userservice.model.RegisterResponse;
+import com.bankapp.common.client.userservice.model.*;
 import com.bankapp.userservice.domain.CustomUserDetail;
 import com.bankapp.userservice.domain.User;
+import com.bankapp.userservice.domain.token.RefreshToken;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenRequest;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
 import com.bankapp.userservice.mapper.UserMapper;
 import com.bankapp.userservice.repository.UserRepository;
 import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
+import com.bankapp.userservice.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +18,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.Set;
@@ -39,7 +42,10 @@ public class DefaultAuthService implements AuthService {
 
     private final UserRepository userRepository;
 
+    private final RefreshTokenService refreshTokenService;
+
     @Override
+    @Transactional
     public LoginResponse authenticate(LoginRequest login) {
 
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -58,13 +64,19 @@ public class DefaultAuthService implements AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
 
+        String accessToken = jwtTokenService.generateToken(userDetail.getUsername(), role);
+
+        RefreshToken refreshToken = refreshTokenService.createInitial(userDetail.getUser());
+
         LoginResponse loginResponse = new LoginResponse();
-        loginResponse.token(jwtTokenService.generateToken(userDetail.getUsername(), role));
+        loginResponse.setAccessToken(jwtTokenService.generateToken(userDetail.getUsername(), role));
+        loginResponse.setRefreshToken(refreshToken.getToken());
 
         return loginResponse;
     }
 
     @Override
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         User user = userMapper.toUser(request);
         user.getRoles().add("ROLE_USER");
@@ -75,13 +87,31 @@ public class DefaultAuthService implements AuthService {
     @Override
     public Optional<Authentication> authenticateToken(String token) {
         try {
-            Authentication authentication = authenticationManager
-                    .authenticate(jwtTokenService.authenticate(token));
+            Authentication authentication = jwtTokenService.authenticate(token);
 
             return Optional.of(authentication);
         }
         catch (AuthenticationException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
+
+        User user = userDetail.getUser();
+
+        return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
+        RefreshTokenResponse response = new RefreshTokenResponse();
+        User user = refreshTokenService.refresh(request, response);
+        response.setAccessToken(jwtTokenService.generateToken(user.getEmail(), user.getRoles()));
+        return response;
     }
 }

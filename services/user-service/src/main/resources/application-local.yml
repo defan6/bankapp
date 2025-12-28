@@ -15,6 +15,11 @@ spring:
     bootstrap-servers: localhost:29098
     properties:
       schema.registry.url: http://localhost:8081 # Для локального запуска
+  data:
+    redis:
+      host: localhost
+      port: 6380
+
 
 server:
   port: 8088
