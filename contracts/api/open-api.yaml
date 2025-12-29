@@ -12,4 +12,4 @@ paths:
   /scheduler-service:
     $ref: './scheduler-service/scheduler-service-api.v1.yaml'
   /user-service:
-    $ref: './user-service/user-service-api.v1.yaml'
+    $ref: './user-service/user-service-user-api.v1.yaml'

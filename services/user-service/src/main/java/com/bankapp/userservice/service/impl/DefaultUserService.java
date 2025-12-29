@@ -16,7 +16,7 @@ public class DefaultUserService implements UserService {
 
     @Override
     public RegisterResponse registerUser(RegisterRequest request) {
-        return authService.register(request);
+        return authService.getRegister(request);
     }
 
     @Override
@@ -31,6 +31,6 @@ public class DefaultUserService implements UserService {
 
     @Override
     public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
-        return authService.refresh(request);
+//        return authService.refresh(request);
     }
 }

@@ -1,17 +1,16 @@
 openapi: 3.0.3
 info:
-  title: User Service API
+  title: User Service Auth Business Logic API
   version: 1.0.0
-  description: API for managing users, registration, and authentication.
-
+  description: API for auth business logic
 
 paths:
-  /api/users/register:
+  /api/v1/auth/register:
     post:
       summary: Register a new user
       operationId: registerUser
       tags:
-        - User
+        - Auth
       requestBody:
         required: true
         content:
@@ -37,13 +36,12 @@ paths:
             application/json:
               schema:
                 $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
-
-  /api/users/login:
+  /api/v1/auth/login:
     post:
-      summary: Authenticate a user and get a JWT token
+      summary: Authenticate a user and get JWT tokens
       operationId: loginUser
       tags:
-        - User
+        - Auth
       requestBody:
         required: true
         content:
@@ -63,29 +61,69 @@ paths:
             application/json:
               schema:
                 $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
-
-  /api/users/me:
-    get:
-      summary: Get current user's information
-      operationId: getCurrentUser
+  /api/v1/auth/refresh:
+    post:
+      summary: Refresh access token using refresh token
+      operationId: refreshAccessToken
       tags:
-        - User
-      security:
-        - bearerAuth: []
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
       responses:
         '200':
-          description: Successful retrieval of user information
+          description: Access token refreshed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/RefreshTokenResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
-
+        '403':
+          description: Forbidden - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+  /api/v1/auth/logout:
+    post:
+      summary: Logout user and invalidate refresh token
+      operationId: logoutUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '400':
+          description: Bad Request - Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+        '401':
+          description: Unauthorized
+          content:
+            application:json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+  
 components:
   securitySchemes:
     bearerAuth:
@@ -137,6 +175,38 @@ components:
           type: string
         refreshToken:
           type: string
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+      refreshToken:
+        type: string
     RegisterResponse:
       type: object
       properties:

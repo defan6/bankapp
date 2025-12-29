@@ -1,7 +1,7 @@
 package com.bankapp.userservice.service.impl;
 
 import com.bankapp.userservice.domain.User;
-import com.bankapp.userservice.domain.CustomUserDetail;
+import com.bankapp.userservice.domain.CustomUserDetails;
 import com.bankapp.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +21,6 @@ public class CustomUserDetailService implements UserDetailsService {
         User user = userRepository.findAuthByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not be found"));
 
-        return new CustomUserDetail(user);
+        return new CustomUserDetails(user);
     }
 }

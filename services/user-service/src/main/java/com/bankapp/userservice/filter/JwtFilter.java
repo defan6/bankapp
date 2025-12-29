@@ -1,32 +1,25 @@
 package com.bankapp.userservice.filter;
 
 import com.bankapp.userservice.service.AuthService;
-import com.bankapp.userservice.service.JwtTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final String BEARER_HEADER = "Bearer ";
 
     private final AuthService authService;
 
@@ -41,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = extractToken(request);
 
          if(token != null) {
-             Optional<Authentication> authentication = authService.authenticateToken(token);
+             Optional<Authentication> authentication = authService.getAuthentication(token);
 
              authentication.ifPresent(auth ->
                      SecurityContextHolder.getContext().setAuthentication(auth)
@@ -57,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
          String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
          String token = null;
 
-         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+         if (authHeader != null && authHeader.startsWith(BEARER_HEADER)) {
              token = authHeader.substring(7);
          }
 

@@ -1,19 +1,21 @@
 package com.bankapp.userservice.service;
 
+import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenDetails;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 public interface JwtTokenService {
 
-    String generateToken(String username, Set<String> role);
+    AccessTokenResponse generateAccessToken(UUID userId, String username, Set<String> roles);
+
+    RefreshTokenDetails generateRefreshToken(String username);
 
     String extractUsername(String token);
 
-    List<String> extractRole(String token);
+    Set<String> extractRole(String token);
 
     boolean validateToken(String token);
 
