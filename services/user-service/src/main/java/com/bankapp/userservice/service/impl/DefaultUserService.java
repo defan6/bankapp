@@ -1,9 +1,8 @@
 package com.bankapp.userservice.service.impl;
 
-import com.bankapp.common.client.userservice.model.*;
-import com.bankapp.userservice.domain.token.dto.RefreshTokenRequest;
-import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
-import com.bankapp.userservice.service.AuthService;
+import com.bankapp.common.client.userserviceuser.model.UserResponse;
+import com.bankapp.userservice.mapper.UserMapper;
+import com.bankapp.userservice.repository.UserRepository;
 import com.bankapp.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,25 +11,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultUserService implements UserService {
 
-    private final AuthService authService;
+    private final UserRepository userRepository;
+
+    private final UserMapper userMapper;
 
     @Override
-    public RegisterResponse registerUser(RegisterRequest request) {
-        return authService.getRegister(request);
+    public UserResponse getCurrentUser(String email) {
+
+        return userRepository.findByEmail(email)
+                .map(userMapper::toUserResponse)
+                .orElseThrow();
     }
 
-    @Override
-    public LoginResponse loginUser(LoginRequest login) {
-        return authService.authenticate(login);
-    }
-
-    @Override
-    public UserResponse getCurrentUser() {
-        return authService.getCurrentUser();
-    }
-
-    @Override
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
-//        return authService.refresh(request);
-    }
 }

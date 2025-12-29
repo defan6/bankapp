@@ -7,8 +7,8 @@ info:
 paths:
   /api/v1/auth/register:
     post:
-      summary: Register a new user
-      operationId: registerUser
+      summary: register
+      operationId: register
       tags:
         - Auth
       requestBody:
@@ -39,7 +39,7 @@ paths:
   /api/v1/auth/login:
     post:
       summary: Authenticate a user and get JWT tokens
-      operationId: loginUser
+      operationId: login
       tags:
         - Auth
       requestBody:
@@ -64,7 +64,7 @@ paths:
   /api/v1/auth/refresh:
     post:
       summary: Refresh access token using refresh token
-      operationId: refreshAccessToken
+      operationId: refresh
       tags:
         - Auth
       requestBody:
@@ -95,7 +95,7 @@ paths:
   /api/v1/auth/logout:
     post:
       summary: Logout user and invalidate refresh token
-      operationId: logoutUser
+      operationId: logout
       tags:
         - Auth
       requestBody:
@@ -120,7 +120,7 @@ paths:
         '401':
           description: Unauthorized
           content:
-            application:json:
+            application/json:
               schema:
                 $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
   
@@ -158,16 +158,6 @@ components:
         - email
         - password
 
-    UserResponse:
-      type: object
-      properties:
-        userId:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-
     LoginResponse:
       type: object
       properties:
@@ -204,9 +194,6 @@ components:
           type: string
       required:
         - message
-
-      refreshToken:
-        type: string
     RegisterResponse:
       type: object
       properties:

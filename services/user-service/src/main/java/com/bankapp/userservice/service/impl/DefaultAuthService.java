@@ -1,23 +1,22 @@
 package com.bankapp.userservice.service.impl;
 
-import com.bankapp.common.client.userservice.model.*;
+import com.bankapp.common.client.userserviceauth.model.*;
 import com.bankapp.userservice.domain.CustomUserDetails;
-import com.bankapp.userservice.domain.User;
 import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
 import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
-import com.bankapp.userservice.mapper.UserMapper;
+import com.bankapp.userservice.mapper.AuthMapper;
 import com.bankapp.userservice.repository.UserRepository;
 import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +35,7 @@ public class DefaultAuthService implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
-    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -46,7 +45,7 @@ public class DefaultAuthService implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponse authenticate(LoginRequest login) {
+    public LoginResponse login(LoginRequest login) {
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(
@@ -59,13 +58,13 @@ public class DefaultAuthService implements AuthService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        Set<String> roles = authentication.getAuthorities()
+        Set<String> authorities = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
         String username = userDetails.getUsername();
         UUID userId = userDetails.getUserId();
-        AccessTokenResponse accessToken = jwtTokenService.generateAccessToken(userId, username, roles);
+        AccessTokenResponse accessToken = jwtTokenService.generateAccessToken(userId, username, authorities);
 
         RefreshTokenResponse refreshToken = refreshTokenService.getRefreshToken(userDetails);
 
@@ -74,11 +73,12 @@ public class DefaultAuthService implements AuthService {
 
     @Override
     @Transactional
-    public RegisterResponse getRegister(RegisterRequest request) {
-        User user = userMapper.toUser(request);
-        user.getRoles().add("ROLE_USER");
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return userMapper.toRegisterResponse(userRepository.save(user));
+    public RegisterResponse register(RegisterRequest request) {
+//        User user = authMapper.toUser(request);
+//        user.getRoles().add("ROLE_USER");
+//        user.setPassword(passwordEncoder.encode(request.getPassword()));
+//        return authMapper.toRegisterResponse(userRepository.save(user));
+        return null;
     }
 
     @Override
@@ -93,16 +93,6 @@ public class DefaultAuthService implements AuthService {
         }
     }
 
-    @Override
-    public UserResponse getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        CustomUserDetails userDetail = (CustomUserDetails) authentication.getPrincipal();
-
-        User user = userDetail.getUser();
-
-        return userMapper.toUserResponse(user);
-    }
 
 
     private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenResponse refreshToken) {
@@ -110,5 +100,11 @@ public class DefaultAuthService implements AuthService {
         loginResponse.setAccessToken(accessToken.accessToken());
         loginResponse.setRefreshToken(refreshToken.token());
         return loginResponse;
+    }
+
+
+    @Override
+    public ResponseEntity<com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
+        return null;
     }
 }

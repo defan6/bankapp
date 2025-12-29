@@ -1,18 +1,18 @@
 package com.bankapp.userservice.service;
 
-import com.bankapp.common.client.userservice.model.*;
+import com.bankapp.common.client.userserviceauth.model.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import java.util.Optional;
 
 public interface AuthService {
 
-    LoginResponse authenticate(LoginRequest login);
+    LoginResponse login(LoginRequest login);
 
-    RegisterResponse getRegister(RegisterRequest request);
+    RegisterResponse register(RegisterRequest request);
 
     Optional<Authentication> getAuthentication(String token);
 
-    UserResponse getCurrentUser();
-
+    ResponseEntity<RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest);
 }
