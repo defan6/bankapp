@@ -29,7 +29,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 2))
                 .signWith(getKey())
                 .compact();
     }
@@ -54,7 +54,7 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaims(token, claims -> claims.getExpiration());
     }
 

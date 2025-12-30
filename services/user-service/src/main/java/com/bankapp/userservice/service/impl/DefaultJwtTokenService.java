@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,5 +54,9 @@ public class DefaultJwtTokenService implements JwtTokenService {
         return new UsernamePasswordAuthenticationToken (
                 userDetail, null, userDetail.getAuthorities()
         );
+    }
+
+    public Date extractExpiration(String token) {
+        return jwtUtil.extractExpiration(token);
     }
 }

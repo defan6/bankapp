@@ -9,5 +9,5 @@ public interface RefreshTokenService {
 
     RefreshToken createInitial(User user);
 
-    User refresh(RefreshTokenRequest request, RefreshTokenResponse response);
+    RefreshToken refresh(RefreshTokenRequest request, RefreshTokenResponse response);
 }

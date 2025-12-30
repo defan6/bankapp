@@ -33,4 +33,9 @@ public class DefaultUserService implements UserService {
     public RefreshTokenResponse refreshToken(RefreshTokenRequest request) {
         return authService.refresh(request);
     }
+
+    @Override
+    public void logout(String accessToken, String refreshToken) {
+        authService.logout(accessToken, refreshToken);
+    }
 }

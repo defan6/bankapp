@@ -6,9 +6,12 @@ import com.bankapp.userservice.domain.token.dto.RefreshTokenRequest;
 import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
 import com.bankapp.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -44,10 +47,15 @@ public class UserControllerV1 implements UserApiV1 {
         return ResponseEntity.created(location).body(response);
     }
 
-//    public void logout() {
-//
-//    }
-//
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+             @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken,
+             @RequestHeader("Refresh-Token") String refreshToken
+    ) {
+        userService.logout(accessToken, refreshToken);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<RefreshTokenResponse> refreshAccessToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(userService.refreshToken(request));

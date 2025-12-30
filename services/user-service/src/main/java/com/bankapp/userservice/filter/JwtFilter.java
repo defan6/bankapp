@@ -40,14 +40,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
 
-         if(token != null) {
+         if(token != null && !authService.isBlacklisted(token)) {
              Optional<Authentication> authentication = authService.authenticateToken(token);
 
              authentication.ifPresent(auth ->
                      SecurityContextHolder.getContext().setAuthentication(auth)
              );
          }
-
 
         filterChain.doFilter(request, response);
     }

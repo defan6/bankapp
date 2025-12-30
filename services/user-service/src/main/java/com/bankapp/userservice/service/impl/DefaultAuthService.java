@@ -11,6 +11,7 @@ import com.bankapp.userservice.repository.UserRepository;
 import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
+import com.bankapp.userservice.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +45,8 @@ public class DefaultAuthService implements AuthService {
     private final UserRepository userRepository;
 
     private final RefreshTokenService refreshTokenService;
+
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional
@@ -110,8 +114,22 @@ public class DefaultAuthService implements AuthService {
     @Override
     public RefreshTokenResponse refresh(RefreshTokenRequest request) {
         RefreshTokenResponse response = new RefreshTokenResponse();
-        User user = refreshTokenService.refresh(request, response);
-        response.setAccessToken(jwtTokenService.generateToken(user.getEmail(), user.getRoles()));
+        RefreshToken token = refreshTokenService.refresh(request, response);
+        response.setAccessToken(jwtTokenService.generateToken(token.getUser().getEmail(), token.getUser().getRoles()));
         return response;
     }
+
+    @Override
+    public void logout(String accessToken, String refreshToken) {
+        tokenBlacklistService.blacklist(
+                accessToken, refreshToken, ((jwtTokenService.extractExpiration(accessToken)).getTime() - System.currentTimeMillis()) / 1000
+        );
+    }
+
+    @Override
+    public boolean isBlacklisted(String accessToken) {
+        return tokenBlacklistService.isBlacklisted(accessToken);
+    }
+
+
 }

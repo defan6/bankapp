@@ -33,12 +33,11 @@ public class DefaultRefreshTokenService implements RefreshTokenService {
     }
 
     @Override
-    public User refresh(RefreshTokenRequest request, RefreshTokenResponse response) {
+    public RefreshToken refresh(RefreshTokenRequest request, RefreshTokenResponse response) {
         RefreshToken token = refreshTokenReposotory.findByToken(request.getToken());
         token.setToken(UUID.randomUUID().toString());
         response.setRefreshToken(token.getToken());
-        refreshTokenReposotory.save(token);
-        return token.getUser();
+        return refreshTokenReposotory.save(token);
     }
 
 }

@@ -18,4 +18,8 @@ public interface AuthService {
     UserResponse getCurrentUser();
 
     RefreshTokenResponse refresh(RefreshTokenRequest request);
+
+    void logout(String accessToken, String refreshToken);
+
+    boolean isBlacklisted(String accessToken);
 }
