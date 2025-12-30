@@ -14,7 +14,9 @@ public interface AuthService {
 
     Optional<Authentication> getAuthentication(String token);
 
-    ResponseEntity<RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest);
+    RefreshTokenResponse refresh(RefreshTokenRequest refreshTokenRequest);
+
+    LogoutResponse logout(LogoutRequest logoutRequest);
 
     boolean isRefreshToken(String token);
 }

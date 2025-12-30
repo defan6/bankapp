@@ -70,7 +70,7 @@ public class JwtUtil {
         return !extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaims(token, claims -> claims.getExpiration());
     }
 
@@ -78,8 +78,8 @@ public class JwtUtil {
         return extractClaims(token, claims -> claims.get("roles", Set.class));
     }
 
-    public String extractUserId(String token){
-        return extractClaims(token, claims -> claims.get("user_id", String.class));
+    public UUID extractUserId(String token){
+        return extractClaims(token, claims -> claims.get("user_id", UUID.class));
     }
 
     private long getRefreshTokenExpirationDateInMillis() {

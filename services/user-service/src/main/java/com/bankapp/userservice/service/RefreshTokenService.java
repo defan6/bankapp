@@ -1,11 +1,12 @@
 package com.bankapp.userservice.service;
 
-import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
+import com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse;
+import com.bankapp.userservice.domain.RefreshToken;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface RefreshTokenService {
 
-    RefreshTokenResponse getRefreshToken(UserDetails userDetails);
+    RefreshToken getRefreshToken(UserDetails userDetails);
 
     boolean isRefreshToken(String token);
 }

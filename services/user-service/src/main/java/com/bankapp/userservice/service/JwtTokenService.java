@@ -4,6 +4,7 @@ import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
 import com.bankapp.userservice.domain.token.dto.RefreshTokenDetails;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,7 +18,11 @@ public interface JwtTokenService {
 
     Set<String> extractRole(String token);
 
-    boolean validateToken(String token);
+    UUID extractUserId(String token);
 
     UsernamePasswordAuthenticationToken authenticate(String token);
+
+    Date extractExpiration(String token);
+
+    boolean validateToken(String token);
 }

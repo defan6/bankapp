@@ -2,17 +2,19 @@ package com.bankapp.userservice.service.impl;
 
 import com.bankapp.common.client.userserviceauth.model.*;
 import com.bankapp.userservice.domain.CustomUserDetails;
+import com.bankapp.userservice.domain.RefreshToken;
 import com.bankapp.userservice.domain.User;
 import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
-import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
+import com.bankapp.userservice.domain.token.dto.RefreshTokenDetails;
 import com.bankapp.userservice.mapper.AuthMapper;
+import com.bankapp.userservice.repository.RefreshTokenRepository;
 import com.bankapp.userservice.repository.UserRepository;
 import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
+import com.bankapp.userservice.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,6 +46,10 @@ public class DefaultAuthService implements AuthService {
 
     private final RefreshTokenService refreshTokenService;
 
+    private final TokenBlacklistService tokenBlacklistService;
+
+    private final RefreshTokenRepository refreshTokenRepository;
+
     @Override
     @Transactional
     public LoginResponse login(LoginRequest login) {
@@ -65,9 +71,11 @@ public class DefaultAuthService implements AuthService {
                 .collect(Collectors.toSet());
         String username = userDetails.getUsername();
         UUID userId = userDetails.getUserId();
+
         AccessTokenResponse accessToken = jwtTokenService.generateAccessToken(userId, username, authorities);
 
-        RefreshTokenResponse refreshToken = refreshTokenService.getRefreshToken(userDetails);
+        // It's not a RefreshTokenResponse, because it's object not return
+        RefreshToken refreshToken = refreshTokenService.getRefreshToken(userDetails);
 
         return generateLoginResponse(accessToken, refreshToken);
     }
@@ -94,18 +102,36 @@ public class DefaultAuthService implements AuthService {
     }
 
     @Override
-    public ResponseEntity<com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
+    public RefreshTokenResponse refresh(RefreshTokenRequest refreshTokenRequest) {
         return null;
+    }
+
+    @Override
+    public LogoutResponse logout(LogoutRequest logoutRequest) {
+
+        String accessToken = logoutRequest.getAccessToken();
+
+        User user = userRepository.getReferenceById(jwtTokenService.extractUserId(accessToken));
+        RefreshToken refreshToken = refreshTokenRepository.findByUser_Id(user.getId());
+        Long ttlSeconds = (System.currentTimeMillis() - jwtTokenService.extractExpiration(accessToken).getTime()) / 1000;
+
+        tokenBlacklistService.blacklist(accessToken, refreshToken.getToken(), ttlSeconds);
+
+        return generateLogoutResponse();
     }
 
     public boolean isRefreshToken(String token) {
         return refreshTokenService.isRefreshToken(token);
     }
 
-    private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenResponse refreshToken) {
+    private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenDetails refreshToken) {
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setAccessToken(accessToken.accessToken());
         loginResponse.setRefreshToken(refreshToken.token());
         return loginResponse;
+    }
+
+    private LogoutResponse generateLogoutResponse() {
+        return new LogoutResponse("Logout success");
     }
 }

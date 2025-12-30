@@ -23,9 +23,8 @@ public class AuthControllerV1 implements AuthApiV1 {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 
-
     @Override
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<RegisterResponse> register(RegisterRequest registerRequest) {
 
         RegisterResponse response = authService.register(registerRequest);
 
@@ -38,15 +37,14 @@ public class AuthControllerV1 implements AuthApiV1 {
         return ResponseEntity.created(location).body(response);
     }
 
-
-
     @Override
     public ResponseEntity<LogoutResponse> logout(LogoutRequest logoutRequest) {
-        return null;
+        authService.logout(logoutRequest);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
-        return authService.refresh(refreshTokenRequest);
+        return null;
     }
 }

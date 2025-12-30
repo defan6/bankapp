@@ -1,7 +1,7 @@
 package com.bankapp.userservice.mapper;
 
+import com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse;
 import com.bankapp.userservice.domain.RefreshToken;
-import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

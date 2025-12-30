@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,6 +43,11 @@ public class DefaultJwtTokenService implements JwtTokenService {
     }
 
     @Override
+    public UUID extractUserId(String token) {
+        return jwtUtil.extractUserId(token);
+    }
+
+    @Override
     public boolean validateToken(String token) {
         return jwtUtil.isTokenValid(token);
     }
@@ -55,5 +61,10 @@ public class DefaultJwtTokenService implements JwtTokenService {
         return new UsernamePasswordAuthenticationToken (
                 userDetail, null, userDetail.getAuthorities()
         );
+    }
+
+    @Override
+    public Date extractExpiration(String token) {
+        return jwtUtil.extractExpiration(token);
     }
 }
