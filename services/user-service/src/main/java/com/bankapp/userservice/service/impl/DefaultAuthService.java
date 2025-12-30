@@ -2,6 +2,7 @@ package com.bankapp.userservice.service.impl;
 
 import com.bankapp.common.client.userserviceauth.model.*;
 import com.bankapp.userservice.domain.CustomUserDetails;
+import com.bankapp.userservice.domain.User;
 import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
 import com.bankapp.userservice.domain.token.dto.RefreshTokenResponse;
 import com.bankapp.userservice.mapper.AuthMapper;
@@ -74,11 +75,10 @@ public class DefaultAuthService implements AuthService {
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
-//        User user = authMapper.toUser(request);
-//        user.getRoles().add("ROLE_USER");
-//        user.setPassword(passwordEncoder.encode(request.getPassword()));
-//        return authMapper.toRegisterResponse(userRepository.save(user));
-        return null;
+        User user = authMapper.toUser(request);
+        user.getRoles().add("ROLE_USER");
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        return authMapper.toRegisterResponse(userRepository.save(user));
     }
 
     @Override
@@ -93,18 +93,19 @@ public class DefaultAuthService implements AuthService {
         }
     }
 
+    @Override
+    public ResponseEntity<com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
+        return null;
+    }
 
+    public boolean isRefreshToken(String token) {
+        return refreshTokenService.isRefreshToken(token);
+    }
 
     private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenResponse refreshToken) {
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setAccessToken(accessToken.accessToken());
         loginResponse.setRefreshToken(refreshToken.token());
         return loginResponse;
-    }
-
-
-    @Override
-    public ResponseEntity<com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
-        return null;
     }
 }

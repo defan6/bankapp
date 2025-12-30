@@ -34,10 +34,10 @@ public class DefaultRefreshTokenService implements RefreshTokenService {
         Instant expirationAt = Instant.ofEpochMilli(refreshTokenDetails.expirationAt());
         RefreshToken refreshToken = new RefreshToken(user, refreshTokenDetails.token(), expirationAt);
         return refreshTokenMapper.toResponse(refreshTokenRepository.save(refreshToken));
-
-
     }
 
-
-
+    @Override
+    public boolean isRefreshToken(String token) {
+        return refreshTokenRepository.findByToken(token) != null;
+    }
 }
