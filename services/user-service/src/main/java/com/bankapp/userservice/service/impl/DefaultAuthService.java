@@ -20,10 +20,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Ref;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -65,7 +67,7 @@ public class DefaultAuthService implements AuthService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        Set<String> authorities = authentication.getAuthorities()
+        Set<String> authorities = userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
@@ -74,8 +76,7 @@ public class DefaultAuthService implements AuthService {
 
         AccessTokenResponse accessToken = jwtTokenService.generateAccessToken(userId, username, authorities);
 
-        // It's not a RefreshTokenResponse, because it's object not return
-        RefreshToken refreshToken = refreshTokenService.getRefreshToken(userDetails);
+        RefreshTokenResponse refreshToken = refreshTokenService.getRefreshToken(userDetails.getUser());
 
         return generateLoginResponse(accessToken, refreshToken);
     }
@@ -102,8 +103,9 @@ public class DefaultAuthService implements AuthService {
     }
 
     @Override
-    public RefreshTokenResponse refresh(RefreshTokenRequest refreshTokenRequest) {
-        return null;
+    public RefreshAccessTokenResponse refresh(RefreshTokenRequest refreshTokenRequest) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken());
+        return generateRefreshAccessTokenResponse(refreshToken.getUser());
     }
 
     @Override
@@ -111,27 +113,40 @@ public class DefaultAuthService implements AuthService {
 
         String accessToken = logoutRequest.getAccessToken();
 
-        User user = userRepository.getReferenceById(jwtTokenService.extractUserId(accessToken));
+        User user = userRepository.findById(jwtTokenService.extractUserId(accessToken)).get();
+        Long ttlSeconds = (jwtTokenService.extractExpiration(accessToken).getTime() - System.currentTimeMillis()) / 1000;
         RefreshToken refreshToken = refreshTokenRepository.findByUser_Id(user.getId());
-        Long ttlSeconds = (System.currentTimeMillis() - jwtTokenService.extractExpiration(accessToken).getTime()) / 1000;
 
         tokenBlacklistService.blacklist(accessToken, refreshToken.getToken(), ttlSeconds);
 
         return generateLogoutResponse();
     }
 
+    @Override
+    public boolean isBlacklisted(String accessToken) {
+        return tokenBlacklistService.isBlacklisted(accessToken);
+    }
+
     public boolean isRefreshToken(String token) {
         return refreshTokenService.isRefreshToken(token);
     }
 
-    private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenDetails refreshToken) {
+    private LoginResponse generateLoginResponse(AccessTokenResponse accessToken, RefreshTokenResponse refreshToken) {
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setAccessToken(accessToken.accessToken());
-        loginResponse.setRefreshToken(refreshToken.token());
+        loginResponse.setRefreshToken(refreshToken.getRefreshToken());
         return loginResponse;
     }
 
     private LogoutResponse generateLogoutResponse() {
         return new LogoutResponse("Logout success");
+    }
+
+    private RefreshAccessTokenResponse generateRefreshAccessTokenResponse(User user) {
+        RefreshAccessTokenResponse tokenResponse = new RefreshAccessTokenResponse();
+        tokenResponse.setAccessToken(jwtTokenService.generateAccessToken(user.getId(), user.getEmail(), user.getRoles())
+                .accessToken());
+        tokenResponse.setRefreshToken(refreshTokenService.getRefreshToken(user).getRefreshToken());
+        return tokenResponse;
     }
 }

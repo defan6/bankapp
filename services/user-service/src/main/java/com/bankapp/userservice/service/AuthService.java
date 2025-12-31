@@ -14,9 +14,11 @@ public interface AuthService {
 
     Optional<Authentication> getAuthentication(String token);
 
-    RefreshTokenResponse refresh(RefreshTokenRequest refreshTokenRequest);
+    RefreshAccessTokenResponse refresh(RefreshTokenRequest refreshTokenRequest);
 
     LogoutResponse logout(LogoutRequest logoutRequest);
+
+    boolean isBlacklisted(String accessToken);
 
     boolean isRefreshToken(String token);
 }

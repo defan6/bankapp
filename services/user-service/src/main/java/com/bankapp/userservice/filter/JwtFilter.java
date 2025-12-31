@@ -32,14 +32,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         AntPathMatcher path = new AntPathMatcher();
 
-        if (path.match("/api/v?/auth/*", request.getServletPath())) {
+        if (path.match("/api/v?/auth/*", request.getServletPath()) && !path.match("/**/logout", request.getServletPath())) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = extractToken(request);
 
-        if (authService.isRefreshToken(token)) {
+        if (authService.isRefreshToken(token) || authService.isBlacklisted(token)) {
             throw new BadCredentialsException("Invalid token");
         }
 

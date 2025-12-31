@@ -9,6 +9,7 @@ import com.bankapp.userservice.mapper.RefreshTokenMapper;
 import com.bankapp.userservice.repository.RefreshTokenRepository;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -26,14 +27,14 @@ public class DefaultRefreshTokenService implements RefreshTokenService {
     private final RefreshTokenMapper refreshTokenMapper;
 
     @Override
-    public RefreshToken getRefreshToken(UserDetails userDetails) {
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        String username = customUserDetails.getUsername();
-        User user = customUserDetails.getUser();
+    @Transactional
+    public RefreshTokenResponse getRefreshToken(User user) {
+        String username = user.getEmail();
         RefreshTokenDetails refreshTokenDetails  = jwtTokenService.generateRefreshToken(username);
         Instant expirationAt = Instant.ofEpochMilli(refreshTokenDetails.expirationAt());
+        refreshTokenRepository.deleteByUser(user);
         RefreshToken refreshToken = new RefreshToken(user, refreshTokenDetails.token(), expirationAt);
-        return refreshTokenRepository.save(refreshToken);
+        return refreshTokenMapper.toResponse(refreshTokenRepository.save(refreshToken));
     }
 
     @Override

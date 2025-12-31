@@ -79,7 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
+                $ref: '#/components/schemas/RefreshAccessTokenResponse'
         '401':
           description: Unauthorized
           content:
@@ -177,11 +177,16 @@ components:
     RefreshTokenResponse:
       type: object
       properties:
-        accessToken:
-          type: string
         refreshToken:
           type: string
 
+    RefreshAccessTokenResponse:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+        accessToken:
+          type: string
     LogoutRequest:
       type: object
       properties:

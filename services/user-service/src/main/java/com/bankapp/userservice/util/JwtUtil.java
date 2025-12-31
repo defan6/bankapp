@@ -79,7 +79,8 @@ public class JwtUtil {
     }
 
     public UUID extractUserId(String token){
-        return extractClaims(token, claims -> claims.get("user_id", UUID.class));
+        String userId = extractClaims(token, claims -> claims.get("user_id", String.class));
+        return UUID.fromString(userId);
     }
 
     private long getRefreshTokenExpirationDateInMillis() {

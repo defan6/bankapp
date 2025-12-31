@@ -44,7 +44,7 @@ public class AuthControllerV1 implements AuthApiV1 {
     }
 
     @Override
-    public ResponseEntity<RefreshTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
-        return null;
+    public ResponseEntity<RefreshAccessTokenResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(authService.refresh(refreshTokenRequest));
     }
 }

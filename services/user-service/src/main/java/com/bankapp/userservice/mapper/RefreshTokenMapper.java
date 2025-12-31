@@ -3,10 +3,11 @@ package com.bankapp.userservice.mapper;
 import com.bankapp.common.client.userserviceauth.model.RefreshTokenResponse;
 import com.bankapp.userservice.domain.RefreshToken;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface RefreshTokenMapper {
 
-//    @Mapping(target = "userId", expression = "java(user == null ? null: user.getId())")
+    @Mapping(source = "token", target = "refreshToken")
     RefreshTokenResponse toResponse(RefreshToken refreshToken);
 }
