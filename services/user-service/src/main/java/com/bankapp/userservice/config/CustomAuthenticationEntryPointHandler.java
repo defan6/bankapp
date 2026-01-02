@@ -22,8 +22,8 @@ public class CustomAuthenticationEntryPointHandler implements AuthenticationEntr
          response.getWriter().write("""
                  {
                    "error": "Unauthorized",
-                   "message": "Authentication is required"
+                   "message": "%s"
                  }
-                 """);
+                 """.formatted(authException.getMessage()));
     }
 }

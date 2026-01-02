@@ -1,11 +1,12 @@
 package com.bankapp.userservice.service.impl;
 
 import com.bankapp.common.client.userserviceauth.model.*;
-import com.bankapp.userservice.domain.CustomUserDetails;
+import com.bankapp.userservice.domain.detail.CustomUserDetails;
 import com.bankapp.userservice.domain.RefreshToken;
 import com.bankapp.userservice.domain.User;
 import com.bankapp.userservice.domain.token.dto.AccessTokenResponse;
-import com.bankapp.userservice.domain.token.dto.RefreshTokenDetails;
+import com.bankapp.userservice.exception.TokenNotFoundException;
+import com.bankapp.userservice.exception.UserIdNotFoundException;
 import com.bankapp.userservice.mapper.AuthMapper;
 import com.bankapp.userservice.repository.RefreshTokenRepository;
 import com.bankapp.userservice.repository.UserRepository;
@@ -13,6 +14,7 @@ import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
 import com.bankapp.userservice.service.TokenBlacklistService;
+import com.bankapp.userservice.validator.AuthValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,12 +22,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Ref;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -52,9 +52,12 @@ public class DefaultAuthService implements AuthService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final AuthValidator authValidator;
+
     @Override
     @Transactional
     public LoginResponse login(LoginRequest login) {
+        authValidator.loginValidator(login);
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(
@@ -76,7 +79,7 @@ public class DefaultAuthService implements AuthService {
 
         AccessTokenResponse accessToken = jwtTokenService.generateAccessToken(userId, username, authorities);
 
-        RefreshTokenResponse refreshToken = refreshTokenService.getRefreshToken(userDetails.getUser());
+        RefreshTokenResponse refreshToken = refreshTokenService.createRefreshToken(userDetails.getUser());
 
         return generateLoginResponse(accessToken, refreshToken);
     }
@@ -84,6 +87,7 @@ public class DefaultAuthService implements AuthService {
     @Override
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
+        authValidator.registerValidator(request);
         User user = authMapper.toUser(request);
         user.getRoles().add("ROLE_USER");
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -104,7 +108,8 @@ public class DefaultAuthService implements AuthService {
 
     @Override
     public RefreshAccessTokenResponse refresh(RefreshTokenRequest refreshTokenRequest) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken());
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken())
+                .orElseThrow(() -> new TokenNotFoundException("Token not exists"));
         return generateRefreshAccessTokenResponse(refreshToken.getUser());
     }
 
@@ -113,9 +118,13 @@ public class DefaultAuthService implements AuthService {
 
         String accessToken = logoutRequest.getAccessToken();
 
-        User user = userRepository.findById(jwtTokenService.extractUserId(accessToken)).get();
+        User user = userRepository.findById(jwtTokenService.extractUserId(accessToken))
+                .orElseThrow(() -> new UserIdNotFoundException(
+                        "User with " + jwtTokenService.extractUserId(accessToken) + " id not be found"
+                ));
         Long ttlSeconds = (jwtTokenService.extractExpiration(accessToken).getTime() - System.currentTimeMillis()) / 1000;
-        RefreshToken refreshToken = refreshTokenRepository.findByUser_Id(user.getId());
+        RefreshToken refreshToken = refreshTokenRepository.findByUser_Id(user.getId())
+                .orElseThrow(() -> new UserIdNotFoundException("User with " + user.getId() + " id not be found"));
 
         tokenBlacklistService.blacklist(accessToken, refreshToken.getToken(), ttlSeconds);
 
@@ -146,7 +155,7 @@ public class DefaultAuthService implements AuthService {
         RefreshAccessTokenResponse tokenResponse = new RefreshAccessTokenResponse();
         tokenResponse.setAccessToken(jwtTokenService.generateAccessToken(user.getId(), user.getEmail(), user.getRoles())
                 .accessToken());
-        tokenResponse.setRefreshToken(refreshTokenService.getRefreshToken(user).getRefreshToken());
+        tokenResponse.setRefreshToken(refreshTokenService.updateRefreshToken(user).getRefreshToken());
         return tokenResponse;
     }
 }

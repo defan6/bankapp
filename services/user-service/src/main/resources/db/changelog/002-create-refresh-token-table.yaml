@@ -12,10 +12,15 @@ databaseChangeLog:
             tableName: refresh_tokens
             columns:
               - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
                   name: token
                   type: VARCHAR(255)
                   constraints:
-                    primaryKey: true
                     nullable: false
               - column:
                   name: user_id

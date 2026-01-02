@@ -1,5 +1,6 @@
 package com.bankapp.userservice.service.impl;
 
+import com.bankapp.userservice.exception.TokenNotFoundException;
 import com.bankapp.userservice.repository.RefreshTokenRepository;
 import com.bankapp.userservice.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,8 @@ public class DefaultTokenBlacklistService implements TokenBlacklistService {
         stringRedisTemplate.opsForValue()
                 .set(accessToken, "revoked", ttlSeconds, TimeUnit.SECONDS);
 
-        refreshTokenRepository.delete(refreshTokenRepository.findByToken(refreshToken));
+        refreshTokenRepository.delete(refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new TokenNotFoundException("Token not exists")));
     }
 
     @Override

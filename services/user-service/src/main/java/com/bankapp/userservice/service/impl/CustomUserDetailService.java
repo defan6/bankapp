@@ -1,7 +1,7 @@
 package com.bankapp.userservice.service.impl;
 
 import com.bankapp.userservice.domain.User;
-import com.bankapp.userservice.domain.CustomUserDetails;
+import com.bankapp.userservice.domain.detail.CustomUserDetails;
 import com.bankapp.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

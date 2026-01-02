@@ -2,7 +2,7 @@ package com.bankapp.userservice.controller;
 
 import com.bankapp.common.client.userserviceuser.api.UserApiV1;
 import com.bankapp.common.client.userserviceuser.model.UserResponse;
-import com.bankapp.userservice.domain.CustomUserDetails;
+import com.bankapp.userservice.domain.detail.CustomUserDetails;
 import com.bankapp.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
