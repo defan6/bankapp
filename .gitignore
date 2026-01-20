@@ -25,7 +25,6 @@ hs_err_pid*
 # Build tool folders
 .gradle
 build/
-out/
 
 # IDE folders
 .idea/
@@ -35,3 +34,4 @@ out/
 .classpath
 .settings/
 *.iml
+.env

@@ -6,6 +6,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   kafka:
     bootstrap-servers: localhost:29098
+    properties:
+      schema.registry.url: http://localhost:8081 # Schema Registry URL for local environment
   # Конфигурация Feign для профиля 'local'
   feign:
     client:

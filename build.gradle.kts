@@ -6,7 +6,7 @@ plugins {
     // Применяем плагины ко всем подпроектам
     base
     id("java")
-    id("org.springframework.boot") version "3.2.0" apply false
+    id("org.springframework.boot") version "3.5.9" apply false
     id("io.spring.dependency-management") version "1.1.4"
 }
 
@@ -34,7 +34,7 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     java {
-        toolchain{
+        toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
@@ -42,10 +42,10 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom(SpringBootPlugin.BOM_COORDINATES)
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
         }
     }
-    
+
     dependencies {
         // Зависимости, общие для всех сервисов
         implementation("org.springframework.boot:spring-boot-starter-web")

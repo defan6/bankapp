@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-add-retry-fields-to-outbox
+      author: gemini
+      changes:
+        - addColumn:
+            tableName: outbox
+            columns:
+              - column:
+                  name: retry_count
+                  type: INTEGER
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: next_retry_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: true
+        - createIndex:
+            indexName: idx_outbox_net_retry_at
+            tableName: outbox
+            columns:
+              - column:
+                  name: next_retry_at

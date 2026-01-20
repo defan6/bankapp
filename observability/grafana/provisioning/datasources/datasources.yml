@@ -32,8 +32,8 @@ datasources:
     jsonData:
       tracesToLogs:
         datasourceUid: loki
-        tags: ['job', 'instance', 'pod', 'namespace']
-        mappedTags: [{ key: 'service.name', value: 'job' }]
+        tags: [ 'job', 'instance', 'pod', 'namespace' ]
+        mappedTags: [ { key: 'service.name', value: 'job' } ]
         spanStartTimeShift: '1h'
         spanEndTimeShift: '1h'
         filterByTraceID: true

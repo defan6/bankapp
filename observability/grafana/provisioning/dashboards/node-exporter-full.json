@@ -607,11 +607,27 @@
           "editorMode": "code",
           "exemplar": false,
           "expr": "(
-  (node_filesystem_size_bytes{instance=\"$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"}
-   - node_filesystem_avail_bytes{instance=\"$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"})
-  / node_filesystem_size_bytes{instance=\"$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"}
-) * 100
-",
+          (node_filesystem_size_bytes
+        {
+          instance=
+          \
+          "$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"}
+          -
+          node_filesystem_avail_bytes
+        {
+          instance=
+          \
+          "$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"})
+          /
+          node_filesystem_size_bytes
+        {
+          instance=
+          \
+          "$node\", job=\"$job\", mountpoint=\" /\", fstype!=\"rootfs\"}
+          )
+          *
+          100
+          ",
           "format": "time_series",
           "instant": true,
           "range": false,
@@ -1982,12 +1998,45 @@
             },
             {
               "editorMode": "code",
-              "expr": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance=\"$node\",job=\"$job"}[$__rate_interval])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance=\"$node\",job=\"$job"}[$__rate_interval]))) > 0",
-              "format": "time_series",
-              "legendFormat": "Guest CPU usage",
-              "range": true,
-              "refId": "I",
-              "step": 240
+              "expr": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance=\"$node\",job=\"$job"
+            }
+            [
+              $__rate_interval
+            ]
+            ))
+            /
+            on(instance)
+            group_left
+            sum
+            by
+            (instance)((irate(node_cpu_seconds_total
+            {
+              instance=
+              \
+              "$node\",job=\"$job"
+            }
+            [
+              $__rate_interval
+            ]
+            )))
+            >
+            0
+            ",
+            "format"
+            :
+            "time_series",
+            "legendFormat"
+            :
+            "Guest CPU usage",
+            "range"
+            :
+            true,
+            "refId"
+            :
+            "I",
+            "step"
+            :
+            240
             }
           ],
           "title": "CPU",

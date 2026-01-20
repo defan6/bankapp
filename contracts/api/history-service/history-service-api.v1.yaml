@@ -12,7 +12,7 @@ paths:
       tags:
         - History
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: page
           in: query
@@ -41,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
 components:
   securitySchemes:
@@ -76,7 +76,7 @@ components:
           format: uuid
         type:
           type: string
-          enum: [INCOMING, OUTGOING]
+          enum: [ INCOMING, OUTGOING ]
         source_account_id:
           type: string
           format: uuid
@@ -90,7 +90,7 @@ components:
           type: string
         status:
           type: string
-          enum: [COMPLETED, FAILED]
+          enum: [ COMPLETED, FAILED ]
         event_timestamp:
           type: string
           format: date-time

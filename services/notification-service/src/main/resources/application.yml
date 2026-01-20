@@ -14,8 +14,6 @@ spring:
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer # Указываем Avro десериализатор
     properties:
       specific.avro.reader: true # Включаем чтение в конкретные Avro-классы
-server:
-  port: 8085
 logging:
   level:
     root: INFO
