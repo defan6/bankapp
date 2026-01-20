@@ -1,5 +1,4 @@
 services:
-  # ---------------- Инфраструктура ----------------
   postgres:
     image: postgres:15-alpine
     container_name: postgres
@@ -36,18 +35,31 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
-  # ДОБАВЛЯЕМ СЕРВИС SCHEMA REGISTRY
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.5.3 # Используем ту же версию, что и Kafka
+    image: confluentinc/cp-schema-registry:7.5.3
     container_name: schema-registry
     ports:
-      - "8081:8081" # Стандартный порт Schema Registry
+      - "8081:8081"
     depends_on:
-      - kafka # Зависит от Kafka
+      - kafka
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092' # Указываем на наш Kafka брокер
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081 # Где Schema Registry будет слушать
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
   redis:
     image: redis:7-alpine
@@ -65,7 +77,7 @@ services:
       - clickhouse_data:/var/lib/clickhouse
   
   # ---------------- Observability Stack (Grafana, Loki, Tempo, Alloy, Prometheus) ----------------
-
+  
   loki:
     image: grafana/loki:2.9.2
     container_name: loki
@@ -94,7 +106,7 @@ services:
       - "4317:4317" # OTLP gRPC endpoint
       - "4318:4318" # OTLP HTTP endpoint
     volumes:
-      - ./observability/alloy-test.river:/etc/alloy/config.river
+      - ./observability/alloy.river:/etc/alloy/config.river
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.river
     depends_on:

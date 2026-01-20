@@ -19,7 +19,3 @@ dependencies {
 tasks.named("compileJava") {
     dependsOn(project(":common").tasks.matching { it.group == "openapi" })
 }
-
-tasks.named("compileJava") {
-    dependsOn(project(":common").tasks.matching { it.group == "openapi" })
-}

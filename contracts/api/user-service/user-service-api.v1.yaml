@@ -30,13 +30,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '409':
           description: Conflict - email is already taken
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
   /api/users/login:
     post:
@@ -62,7 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
   /api/users/me:
     get:
@@ -71,7 +71,7 @@ paths:
       tags:
         - User
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       responses:
         '200':
           description: Successful retrieval of user information
@@ -84,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
 components:
   securitySchemes:
@@ -109,15 +109,12 @@ components:
 
     LoginRequest:
       type: object
-
       properties:
         email:
           type: string
           format: email
         password:
           type: string
-          minLength: 3
-          maxLength: 32
           format: password
       required:
         - email

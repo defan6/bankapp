@@ -12,7 +12,7 @@ paths:
       tags:
         - Transaction
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -31,19 +31,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
   /api/transactions/{transactionId}:
     get:
@@ -52,7 +52,7 @@ paths:
       tags:
         - Transaction
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: transactionId
           in: path
@@ -72,13 +72,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
 components:
   securitySchemes:
@@ -113,7 +113,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [PENDING, COMPLETED, FAILED]
+          enum: [ PENDING, COMPLETED, FAILED ]
         amount:
           type: number
           format: double

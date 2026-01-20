@@ -3,15 +3,19 @@ package com.bankapp.userservice.controller;
 import com.bankapp.common.client.userservice.api.UserApiV1;
 import com.bankapp.common.client.userservice.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class UserControllerV1 implements UserApiV1 {
     @Override
     public ResponseEntity<UserResponse> getCurrentUser() {
-        return null;
+        log.info("getCurrentUser");
+        return
+                ResponseEntity.ok(new UserResponse());
     }
 
     @Override

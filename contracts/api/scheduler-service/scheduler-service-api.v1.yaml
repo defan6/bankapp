@@ -12,7 +12,7 @@ paths:
       tags:
         - Scheduler
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -31,20 +31,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
     get:
       summary: Get all scheduled payments for the current user
       operationId: getSchedules
       tags:
         - Scheduler
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       responses:
         '200':
           description: Scheduled payments retrieved successfully
@@ -59,7 +59,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
   /api/schedules/{scheduleId}:
     delete:
@@ -68,7 +68,7 @@ paths:
       tags:
         - Scheduler
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       parameters:
         - name: scheduleId
           in: path
@@ -84,19 +84,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '../common/common.v1.yaml#/components/schemas/ErrorDto'
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
 
 components:
   securitySchemes:

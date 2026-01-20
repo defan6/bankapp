@@ -1,6 +1,6 @@
 // services/analytics-service/build.gradle.kts
 dependencies {
-    implementation(project(":common")){
+    implementation(project(":common")) {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-data-jpa")
     }
     implementation("org.springframework.kafka:spring-kafka")
@@ -13,10 +13,6 @@ dependencies {
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation("io.micrometer:micrometer-registry-otlp")
     implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.23.0-alpha")
-}
-
-tasks.named("compileJava") {
-    dependsOn(project(":common").tasks.matching { it.group == "openapi" })
 }
 
 tasks.named("compileJava") {

@@ -1,34 +1,91 @@
-#!/bin/bash
-set -e
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-'EOSQL'
 
-# Эта функция вызывается официальным entrypoint скриптом Postgres.
-# Она использует переменные окружения POSTGRES_USER и POSTGRES_DB из docker-compose.yml.
-# Мы подключаемся к основной БД ($POSTGRES_DB) от имени суперпользователя ($POSTGRES_USER)
-# и создаем новые БД и роли для каждого микросервиса.
+-- ============================================================
+-- USERS (можно в DO)
+-- ============================================================
+DO $$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'user_service_user') THEN
+      CREATE ROLE user_service_user LOGIN PASSWORD 'password';
+   END IF;
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    -- User Service
-    CREATE USER user_service_user WITH PASSWORD 'password';
-    CREATE DATABASE user_service_db;
-    GRANT ALL PRIVILEGES ON DATABASE user_service_db TO user_service_user;
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'account_service_user') THEN
+      CREATE ROLE account_service_user LOGIN PASSWORD 'password';
+   END IF;
 
-    -- Account Service
-    CREATE USER account_service_user WITH PASSWORD 'password';
-    CREATE DATABASE account_service_db;
-    GRANT ALL PRIVILEGES ON DATABASE account_service_db TO account_service_user;
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'transaction_service_user') THEN
+      CREATE ROLE transaction_service_user LOGIN PASSWORD 'password';
+   END IF;
 
-    -- Transaction Service
-    CREATE USER transaction_service_user WITH PASSWORD 'password';
-    CREATE DATABASE transaction_service_db;
-    GRANT ALL PRIVILEGES ON DATABASE transaction_service_db TO transaction_service_user;
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'history_service_user') THEN
+      CREATE ROLE history_service_user LOGIN PASSWORD 'password';
+   END IF;
 
-    -- History Service
-    CREATE USER history_service_user WITH PASSWORD 'password';
-    CREATE DATABASE history_service_db;
-    GRANT ALL PRIVILEGES ON DATABASE history_service_db TO history_service_user;
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'scheduler_service_user') THEN
+      CREATE ROLE scheduler_service_user LOGIN PASSWORD 'password';
+   END IF;
+END
+$$;
 
-    -- Scheduler Service
-    CREATE USER scheduler_service_user WITH PASSWORD 'password';
-    CREATE DATABASE scheduler_service_db;
-    GRANT ALL PRIVILEGES ON DATABASE scheduler_service_db TO scheduler_service_user;
+-- ============================================================
+-- DATABASES (ТОЛЬКО через gexec)
+-- ============================================================
+
+SELECT format(
+  'CREATE DATABASE user_service_db OWNER user_service_user'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'user_service_db'
+)\gexec
+
+SELECT format(
+  'CREATE DATABASE account_service_db OWNER account_service_user'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'account_service_db'
+)\gexec
+
+SELECT format(
+  'CREATE DATABASE transaction_service_db OWNER transaction_service_user'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'transaction_service_db'
+)\gexec
+
+SELECT format(
+  'CREATE DATABASE history_service_db OWNER history_service_user'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'history_service_db'
+)\gexec
+
+SELECT format(
+  'CREATE DATABASE scheduler_service_db OWNER scheduler_service_user'
+)
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'scheduler_service_db'
+)\gexec
+
+
+
+-- Для user_service_db
+\connect user_service_db
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION user_service_user;
+
+-- Для account_service_db
+\connect account_service_db
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION account_service_user;
+
+-- Для transaction_service_db
+\connect transaction_service_db
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION transaction_service_user;
+
+-- Для history_service_db
+\connect history_service_db
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION history_service_user;
+
+-- Для scheduler_service_db
+\connect scheduler_service_db
+CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION scheduler_service_user;
+
 EOSQL

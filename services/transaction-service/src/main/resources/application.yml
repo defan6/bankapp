@@ -14,8 +14,12 @@ spring:
     show-sql: true
   kafka:
     consumer:
-      group-id: transaction-service-group
       auto-offset-reset: earliest
+    producer: # Kafka Producer configuration
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: ${spring.kafka.properties.schema.registry.url} # Referencing the property that will be defined in specific profiles
 logging:
   level:
     root: INFO
