@@ -11,4 +11,13 @@ spring:
     client:
       config:
         account-service: # имя Feign клиента из @FeignClient(name = "account-service")
-          url: http://account-service:8082 # Имя Docker-сервиса
+          url: http://account-service:8080 # Имя Docker-сервиса
+  management:
+    otlp:
+      endpoint: http://alloy:4318
+      metrics:
+        export:
+          url: ${management.otlp.endpoint}/v1/metrics
+      tracing:
+        export:
+          url: ${management.otlp.endpoint}/v1/traces

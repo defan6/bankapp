@@ -16,8 +16,6 @@ spring:
     consumer:
       group-id: transaction-service-group
       auto-offset-reset: earliest
-server:
-  port: 8083
 logging:
   level:
     root: INFO

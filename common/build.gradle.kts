@@ -20,8 +20,11 @@ java {
 /* ---------------- DEPENDENCIES ---------------- */
 
 dependencies {
+    // Зависимость от Kafka, чтобы определять события
     implementation("org.springframework.kafka:spring-kafka")
+    // Зависимость от JPA для общих Entities, если они будут
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    // Для Feign Client интерфейсов
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     implementation("jakarta.validation:jakarta.validation-api")

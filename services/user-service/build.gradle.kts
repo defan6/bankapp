@@ -22,6 +22,11 @@ dependencies {
     // MapStruct
     compileOnly("org.mapstruct:mapstruct:1.5.5.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
+    // Observability with OTLP
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.micrometer:micrometer-registry-otlp")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.23.0-alpha")
 }
 
 tasks.named("compileJava") {

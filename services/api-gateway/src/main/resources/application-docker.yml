@@ -9,3 +9,12 @@ spring:
     redis:
       host: redis
       port: 6379
+management:
+  otlp:
+    endpoint: http://alloy:4318
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces

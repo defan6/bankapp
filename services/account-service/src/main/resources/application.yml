@@ -19,8 +19,6 @@ spring:
     consumer:
       group-id: account-service-group
       auto-offset-reset: earliest
-server:
-  port: 8082
 logging:
   level:
     root: INFO

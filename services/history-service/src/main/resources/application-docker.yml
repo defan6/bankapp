@@ -9,3 +9,13 @@ spring:
     driver-class-name: org.postgresql.Driver
   kafka:
     bootstrap-servers: kafka:9092
+
+management:
+  otlp:
+    endpoint: http://alloy:4318
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces
