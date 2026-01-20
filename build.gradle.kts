@@ -15,12 +15,16 @@ tasks.wrapper {
     gradleVersion = "8.14"
 }
 
+
+
 allprojects {
     group = "com.bankapp"
     version = "0.0.1-SNAPSHOT"
 
     repositories {
         mavenCentral()
+        // ДОБАВЛЯЕМ ЭТОТ РЕПОЗИТОРИЙ
+        maven { url = uri("https://packages.confluent.io/maven/") }
     }
 }
 
@@ -30,7 +34,9 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
+        toolchain{
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
     }
 
     dependencyManagement {
@@ -49,5 +55,11 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+}
+
+project(":services") {
+    tasks.named("bootJar") {
+        enabled = false
     }
 }

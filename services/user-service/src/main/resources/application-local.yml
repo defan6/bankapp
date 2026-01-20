@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/user_service_db
+    username: bankapp
+    password: password
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    user: bankapp
+    password: password
+  kafka:
+    bootstrap-servers: localhost:29098
+    properties:
+      schema.registry.url: http://localhost:8081 # Для локального запуска

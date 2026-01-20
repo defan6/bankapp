@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/transaction_service_db
+    username: bankapp
+    password: password
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: kafka:9092
+  # Конфигурация Feign для профиля 'docker'
+  feign:
+    client:
+      config:
+        account-service: # имя Feign клиента из @FeignClient(name = "account-service")
+          url: http://account-service:8082 # Имя Docker-сервиса

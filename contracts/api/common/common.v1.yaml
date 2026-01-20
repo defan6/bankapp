@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: Common API Schemas
+  version: 1.0.0
+  description: Contains common data schemas shared across multiple service APIs.
+
+components:
+  schemas:
+    ErrorDto:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp of when the error occurred.
+        status:
+          type: integer
+          description: The HTTP status code.
+        error:
+          type: string
+          description: The HTTP status message.
+        message:
+          type: string
+          description: A human-readable description of the error.
+        path:
+          type: string
+          description: The path of the request that resulted in an error.

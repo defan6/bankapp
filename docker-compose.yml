@@ -1,16 +1,16 @@
 services:
-  # ---------------- Инфраструктура ----------------
   postgres:
     image: postgres:15-alpine
     container_name: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=bankapp
-      - POSTGRES_PASSWORD=bankapp
+      - POSTGRES_PASSWORD=password
       - POSTGRES_DB=bankapp
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.3
@@ -23,23 +23,36 @@ services:
     image: confluentinc/cp-kafka:7.5.3
     container_name: kafka
     ports:
-      - "9092:9092"
-      - "29092:29092"
+      - "29098:9093"
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29098
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  # ДОБАВЛЯЕМ СЕРВИС SCHEMA REGISTRY
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.3 # Используем ту же версию, что и Kafka
+    container_name: schema-registry
+    ports:
+      - "8081:8081" # Стандартный порт Schema Registry
+    depends_on:
+      - kafka # Зависит от Kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092' # Указываем на наш Kafka брокер
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081 # Где Schema Registry будет слушать
 
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.8
@@ -74,12 +87,14 @@ services:
       dockerfile: services/api-gateway/Dockerfile
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8090:8080"
     depends_on:
       - kafka
       - redis
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   user-service:
     build:
@@ -87,13 +102,15 @@ services:
       dockerfile: services/user-service/Dockerfile
     container_name: user-service
     ports:
-      - "8081:8081"
+      - "8088:8088"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=super-secret-key-that-should-be-in-a-vault
+    profiles:
+      - docker
 
   account-service:
     build:
@@ -107,7 +124,9 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      
+    profiles:
+      - docker
+
   transaction-service:
     build:
       context: .
@@ -120,6 +139,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   history-service:
     build:
@@ -133,6 +154,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   notification-service:
     build:
@@ -145,6 +168,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   analytics-service:
     build:
@@ -158,6 +183,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   scheduler-service:
     build:
@@ -171,6 +198,8 @@ services:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
 volumes:
   postgres_data:

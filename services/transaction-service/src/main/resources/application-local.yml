@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/transaction_service_db
+    username: bankapp
+    password: password
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: localhost:29098
+  # Конфигурация Feign для профиля 'local'
+  feign:
+    client:
+      config:
+        account-service: # имя Feign клиента из @FeignClient(name = "account-service")
+          url: http://localhost:8082 # Локальный порт Account Service

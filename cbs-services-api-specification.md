@@ -87,6 +87,11 @@
   - **Headers:** `Authorization: Bearer <token>`
   - **Success Response (200 OK):** `[{ "accountId": "uuid", "balance": 1500.50, "currency": "RUB" }]`
   - **Error Responses:** `401 Unauthorized`.
+- `GET api/accounts/{id}`
+- **Описание:** Получение аккаунта по id.
+- **Headers:** `Authorization: Bearer <token>`
+- **Success Response (200 OK):** `{ "accountId": "uuid", "balance": 1500.50, "currency": "RUB" }`
+- **Error Responses:** `401 Unauthorized`, `403 Forbidden`.
 
 ---
 

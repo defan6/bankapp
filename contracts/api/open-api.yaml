@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: BankApp API
+  version: 1.0.0
+paths:
+  /account-service:
+    $ref: './account-service/account-service-api.v1.yaml'
+  /common:
+    $ref: './common/common.v1.yaml'
+  /history-service:
+    $ref: './history-service/history-service-api.v1.yaml'
+  /scheduler-service:
+    $ref: './scheduler-service/scheduler-service-api.v1.yaml'
+  /user-service:
+    $ref: './user-service/user-service-api.v1.yaml'

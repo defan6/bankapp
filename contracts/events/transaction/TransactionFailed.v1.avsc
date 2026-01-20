@@ -1,0 +1,43 @@
+{
+  "type": "record",
+  "name": "TransactionFailed",
+  "namespace": "com.bankapp.events.transaction.v1",
+  "doc": "Event indicating that the transaction has failed.",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "Unique identifier for this event."
+    },
+    {
+      "name": "transactionId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "The identifier of the failed transaction."
+    },
+    {
+      "name": "sourceAccountId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "The source account of the transfer."
+    },
+    {
+      "name": "destinationAccountId",
+      "type": { "type": "string", "logicalType": "uuid" },
+      "doc": "The destination account of the transfer."
+    },
+    {
+      "name": "amount",
+      "type": { "type": "bytes", "logicalType": "decimal", "precision": 19, "scale": 4 },
+      "doc": "The amount of the transfer."
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "doc": "The reason why the transaction failed."
+    },
+    {
+      "name": "timestamp",
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
+      "doc": "The timestamp when the transaction failed."
+    }
+  ]
+}
