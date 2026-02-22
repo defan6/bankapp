@@ -28,6 +28,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
+    // Test dependencies
+    testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.named("compileJava") {

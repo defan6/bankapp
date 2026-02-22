@@ -4,6 +4,10 @@ spring:
     username: bankapp
     password: password
     driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
   liquibase:
     user: bankapp
     password: password
