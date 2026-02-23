@@ -5,4 +5,6 @@ databaseChangeLog:
       file: db/changelog/003-create-auth-role-table.yaml
   - include:
       file: db/changelog/002-create-refresh-token-table.yaml
+  - include:
+      file: db/changelog/004-create-user-account-pending-table.yaml
 

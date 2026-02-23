@@ -1,11 +1,13 @@
 package com.bankapp.accountservice.adapters.in.web;
 
+import com.bankapp.accountservice.application.port.in.BatchCreateAccountResult;
 import com.bankapp.accountservice.application.port.in.CreateAccountCommand;
 import com.bankapp.accountservice.application.port.in.CreateAccountUseCase;
 import com.bankapp.accountservice.application.port.in.GetAccountQuery;
 import com.bankapp.accountservice.domain.model.Account;
 import com.bankapp.common.client.accountservice.api.AccountApiV1;
 import com.bankapp.common.client.accountservice.model.AccountResponse;
+import com.bankapp.common.client.accountservice.model.BatchCreateAccountsResponse;
 import com.bankapp.common.client.accountservice.model.CreateAccountRequest;
 import com.bankapp.common.client.accountservice.model.CreateAccountResponse;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,19 @@ public class AccountControllerV1 implements AccountApiV1 {
                 .toUri();
         CreateAccountResponse createAccountResponse = accountWebMapper.toCreateAccountResponse(account);
         return ResponseEntity.created(location).body(createAccountResponse);
+    }
+
+    @Override
+    public ResponseEntity<BatchCreateAccountsResponse> createAccountsBatch(List<CreateAccountRequest> requests) {
+        List<com.bankapp.accountservice.application.port.in.CreateAccountCommand> commands = requests.stream()
+                .map(accountWebMapper::toCreateAccountCommand)
+                .toList();
+
+        List<BatchCreateAccountResult> results =
+                createAccountUseCase.createAccountsBatch(commands);
+
+        BatchCreateAccountsResponse response = accountWebMapper.toBatchCreateAccountsResponse(results);
+        return ResponseEntity.ok(response);
     }
 
     @Override

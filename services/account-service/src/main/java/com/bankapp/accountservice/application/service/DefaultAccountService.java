@@ -43,6 +43,23 @@ public class DefaultAccountService implements CreateAccountUseCase, GetAccountQu
     }
 
     @Override
+    public List<BatchCreateAccountResult> createAccountsBatch(List<CreateAccountCommand> commands) {
+        return commands.stream()
+                .map(this::createAccountWithResult)
+                .toList();
+    }
+
+    private BatchCreateAccountResult createAccountWithResult(CreateAccountCommand command) {
+        try {
+            Account account = createAccount(command);
+            return new BatchCreateAccountResult(command.userId(), true, account.getId(), null);
+        } catch (Exception e) {
+            log.warn("Failed to create account for userId {}: {}", command.userId(), e.getMessage());
+            return new BatchCreateAccountResult(command.userId(), false, null, e.getMessage());
+        }
+    }
+
+    @Override
     public Account getAccount(UUID accountId) {
         return accountRepository.findAccount(accountId)
                 .orElseThrow(
