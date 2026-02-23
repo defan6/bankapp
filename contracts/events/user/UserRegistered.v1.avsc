@@ -6,18 +6,12 @@
   "fields": [
     {
       "name": "eventId",
-      "type": {
-        "type": "string",
-        "logicalType": "uuid"
-      },
+      "type": { "type": "string", "logicalType": "uuid" },
       "doc": "Unique identifier for this event, ensuring idempotency."
     },
     {
       "name": "userId",
-      "type": {
-        "type": "string",
-        "logicalType": "uuid"
-      },
+      "type": { "type": "string", "logicalType": "uuid" },
       "doc": "The unique identifier of the registered user."
     },
     {
@@ -27,10 +21,7 @@
     },
     {
       "name": "timestamp",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      },
+      "type": { "type": "long", "logicalType": "timestamp-millis" },
       "doc": "The timestamp when the user was registered (milliseconds since epoch)."
     }
   ]

@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'bankapp-local-services'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'api-gateway:8080'  # api-gateway
+          - 'user-service:8080'  # user-service
+          - 'account-service:8080'  # account-service
+          - 'transaction-service:8080'  # transaction-service
+          - 'history-service:8080'  # history-service
+          - 'notification-service:8080'  # notification-service
+          - 'analytics-service:8080'  # analytics-service
+          - 'scheduler-service:8080'  # scheduler-service

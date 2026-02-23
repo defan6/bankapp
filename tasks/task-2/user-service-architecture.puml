@@ -1,0 +1,107 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam packageStyle rect
+title Диаграмма классов user-service
+
+
+'rectangle "Client Application" as ClientApp {
+'    note bottom of ClientApp
+'        client
+'    end note
+'}
+
+
+
+
+
+
+package "web" {
+  class UserControllerV1 implements UserApiV1 {
+    + registerUser(RegisterRequest)
+    + loginUser(LoginRequest)
+    + getCurrentUser()
+  }
+  class KeyController {
+    + getJwks()
+  }
+}
+
+package "util" {
+    class PasswordEncoder {
+        encode(CharSequence rawPassword)
+        matches(CharSequence rawPassword, String encodedPassword)
+    }
+
+    class JwtUtil {
+    }
+}
+
+package "service" {
+  interface UserService {
+    + registerUser(RegisterRequest)
+    + loginUser(LoginRequest)
+    + getCurrentUser()
+  }
+  class DefaultUserService implements UserService {
+    - userRepository: UserRepository
+    - passwordEncoder: PasswordEncoder
+  }
+
+  interface AuthService {
+    + authenticate(LoginRequest)
+  }
+  class DefaultAuthService implements AuthService {
+    - jwtTokenService: JwtTokenService
+  }
+
+  interface JwtTokenService {
+    + generateToken(User)
+  }
+  class DefaultJwtTokenService implements JwtTokenService {
+    - keyService: KeyService
+  }
+
+  interface KeyService {
+    + getPrivateKey()
+    + getPublicKey()
+  }
+}
+
+package "repository" {
+  interface UserRepository extends JpaRepository<User, UUID> {
+    + findByEmail(String)
+  }
+}
+
+package "domain" {
+  entity User {
+    - id: UUID
+    - email: String
+    - passwordHash: String
+    - roles: Set<Role>
+  }
+  enum Role {
+    ROLE_USER
+    ROLE_ADMIN
+  }
+}
+
+' --- Связи ---
+common_generated ..> UserApiV1
+ClientApp ..> UserControllerV1
+UserControllerV1 ..> UserService
+
+UserService ..> AuthService
+UserService ..> UserRepository
+UserService ..> PasswordEncoder
+
+AuthService ..> JwtTokenService
+
+JwtTokenService ..> JwtUtil
+JwtTokenService ..> KeyService
+KeyController ..> KeyService
+
+User "1" *-- "0..*" Role
+
+@enduml
