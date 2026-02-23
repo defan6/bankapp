@@ -17,4 +17,6 @@ public interface UserAccountPendingRepository extends JpaRepository<UserAccountP
     List<UserAccountPending> findByCreatedAtBefore(LocalDateTime cutoffTime);
 
     boolean existsByUserId(UUID userId);
+
+    void deleteByUserIdIn(List<UUID> userIds);
 }

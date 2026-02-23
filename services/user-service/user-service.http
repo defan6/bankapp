@@ -14,7 +14,7 @@ POST {{baseUrl}}/api/v1/auth/register
 Content-Type: {{contentType}}
 
 {
-  "email": "test2@example.com",
+  "email": "fedan@example.com",
   "password": "SecurePass123"
 }
 

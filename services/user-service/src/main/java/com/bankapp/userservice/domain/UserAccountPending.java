@@ -28,7 +28,7 @@ public class UserAccountPending {
     private String email;
 
     @Column(nullable = false, length = 3)
-    private String currency = "RUB";
+    private String currency = "USD";
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

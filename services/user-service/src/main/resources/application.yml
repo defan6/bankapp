@@ -43,4 +43,4 @@ account:
     url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
   sync:
     batch-size: ${ACCOUNT_SYNC_BATCH_SIZE:50}
-    delay-seconds: ${ACCOUNT_SYNC_DELAY:10}
+    delay: ${ACCOUNT_SYNC_DELAY:10000}
