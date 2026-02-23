@@ -14,6 +14,7 @@ import com.bankapp.userservice.service.AuthService;
 import com.bankapp.userservice.service.JwtTokenService;
 import com.bankapp.userservice.service.RefreshTokenService;
 import com.bankapp.userservice.service.TokenBlacklistService;
+import com.bankapp.userservice.service.UserAccountSyncService;
 import com.bankapp.userservice.validator.AuthValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,8 @@ public class DefaultAuthService implements AuthService {
 
     private final AuthValidator authValidator;
 
+    private final UserAccountSyncService userAccountSyncService;
+
     @Override
     @Transactional
     public LoginResponse login(LoginRequest login) {
@@ -91,7 +94,12 @@ public class DefaultAuthService implements AuthService {
         User user = authMapper.toUser(request);
         user.getRoles().add("ROLE_USER");
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return authMapper.toRegisterResponse(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        
+        // Планируем создание аккаунта
+        userAccountSyncService.scheduleAccountCreation(savedUser);
+        
+        return authMapper.toRegisterResponse(savedUser);
     }
 
     @Override

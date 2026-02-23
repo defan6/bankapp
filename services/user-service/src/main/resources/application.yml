@@ -36,3 +36,11 @@ jwt:
   secret: ${JWT_SECRET:super-secret-key-that-should-be-in-a-vault}
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000} # 15 minutes
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7 days
+
+# Account Service configuration
+account:
+  service:
+    url: ${ACCOUNT_SERVICE_URL:http://localhost:8082}
+  sync:
+    batch-size: ${ACCOUNT_SYNC_BATCH_SIZE:50}
+    delay-seconds: ${ACCOUNT_SYNC_DELAY:10}
