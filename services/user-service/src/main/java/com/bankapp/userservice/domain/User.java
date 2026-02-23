@@ -34,4 +34,7 @@ public class User {
             joinColumns = @JoinColumn(name = "auth_id")
     )
     private Set<String> roles = new HashSet<>();
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean accountCreated = false;
 }

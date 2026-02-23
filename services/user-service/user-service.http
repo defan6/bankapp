@@ -1,0 +1,107 @@
+### User Service API Test Requests
+### IntelliJ IDEA HTTP Client file
+
+@baseUrl = http://localhost:8088
+@contentType = application/json
+
+### ============================================
+=== AUTH API
+### ============================================
+
+### 1. Регистрация нового пользователя
+# @name registerUser
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "test2@example.com",
+  "password": "SecurePass123"
+}
+
+### 2. Аутентификация (получение JWT токенов)
+# @name loginUser
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "test2@example.com",
+  "password": "SecurePass123"
+}
+
+### 3. Refresh токена (обновление access токена)
+# Сначала выполните loginUser, затем скопируйте refreshToken
+# @name refreshAccessToken
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzcxNzc0ODUzLCJleHAiOjE3NzIzNzk2NTN9.LfG5vm3clrTVXJiok3wp5Q-fbzJ8Bm0dfEtMyc_DwjM"
+}
+
+### 4. Logout (выход из системы)
+# Сначала выполните loginUser, затем скопируйте accessToken
+# @name logoutUser
+POST {{baseUrl}}/api/v1/auth/logout
+Content-Type: {{contentType}}
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiZDE3NjM4MGMtNzA0OS00ZmY3LWE5YzItZDA3NGIyYTE2YTFhIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sInN1YiI6InRlc3QxQGV4YW1wbGUuY29tIiwiaWF0IjoxNzcxNzc1MjUzLCJleHAiOjE3NzE3NzYxNTN9.G1v0FQTI9ks9nDFIgPC3l3uei2te18GAQ4hy93kCpCQ"
+}
+
+### ============================================
+=== USER API
+### ============================================
+
+### 5. Получение текущего пользователя (с JWT токеном)
+# Сначала выполните loginUser, затем скопируйте accessToken
+# @name getCurrentUser
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiZDE3NjM4MGMtNzA0OS00ZmY3LWE5YzItZDA3NGIyYTE2YTFhIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sInN1YiI6InRlc3QxQGV4YW1wbGUuY29tIiwiaWF0IjoxNzcxNzc1MjUzLCJleHAiOjE3NzE3NzYxNTN9.G1v0FQTI9ks9nDFIgPC3l3uei2te18GAQ4hy93kCpCQ
+
+### ============================================
+=== НЕГАТИВНЫЕ ТЕСТЫ
+### ============================================
+
+### 6. Логин с неверным паролем (ожидаем 401)
+# @name loginWrongPassword
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "WrongPassword"
+}
+
+### 7. Регистрация с уже существующим email (ожидаем 409)
+# @name registerDuplicateUser
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "AnotherPass456"
+}
+
+### 8. Получение пользователя без токена (ожидаем 401)
+# @name getCurrentUserWithoutToken
+GET {{baseUrl}}/api/users/me
+
+### 9. Регистрация с пустым email (ожидаем 400)
+# @name registerEmptyEmail
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "",
+  "password": "SecurePass123"
+}
+
+### 10. Регистрация с невалидным email (ожидаем 400)
+# @name registerInvalidEmail
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: {{contentType}}
+
+{
+  "email": "not-an-email",
+  "password": "SecurePass123"
+}
