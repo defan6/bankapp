@@ -1,16 +1,16 @@
 services:
-  # ---------------- Инфраструктура ----------------
   postgres:
     image: postgres:15-alpine
     container_name: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=bankapp
-      - POSTGRES_PASSWORD=bankapp
+      - POSTGRES_PASSWORD=password
       - POSTGRES_DB=bankapp
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.3
@@ -23,23 +23,49 @@ services:
     image: confluentinc/cp-kafka:7.5.3
     container_name: kafka
     ports:
-      - "9092:9092"
-      - "29092:29092"
+      - "29098:9093"
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29098
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.3
+    container_name: schema-registry
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.8
@@ -50,7 +76,44 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
   
-  # ---------------- Observability ----------------
+  # ---------------- Observability Stack (Grafana, Loki, Tempo, Alloy, Prometheus) ----------------
+  
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki.yaml:/etc/loki/local-config.yaml
+      - ./data/loki:/wal
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    ports:
+      - "3200:3200"   # Tempo UI
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo_data:/tmp/tempo
+    command: -config.file=/etc/tempo/tempo.yaml
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    ports:
+      - "12345:12345" # Alloy UI
+      - "4317:4317" # OTLP gRPC endpoint
+      - "4318:4318" # OTLP HTTP endpoint
+    volumes:
+      - ./observability/alloy.river:/etc/alloy/config.river
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.river
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+
   prometheus:
     image: prom/prometheus:v2.47.2
     container_name: prometheus
@@ -58,6 +121,9 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
 
   grafana:
     image: grafana/grafana-oss:10.1.5
@@ -66,6 +132,11 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
 
   # ---------------- Микросервисы ----------------
   api-gateway:
@@ -74,12 +145,14 @@ services:
       dockerfile: services/api-gateway/Dockerfile
     container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "8090:8080"
     depends_on:
       - kafka
       - redis
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   user-service:
     build:
@@ -87,13 +160,19 @@ services:
       dockerfile: services/user-service/Dockerfile
     container_name: user-service
     ports:
-      - "8081:8081"
+      - "8088:8080"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=super-secret-key-that-should-be-in-a-vault
+    env_file:
+      - .env.docker
+    profiles:
+      - docker
+    volumes:
+      - ./otel/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
 
   account-service:
     build:
@@ -101,25 +180,29 @@ services:
       dockerfile: services/account-service/Dockerfile
     container_name: account-service
     ports:
-      - "8082:8082"
+      - "8082:8080"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      
+    profiles:
+      - docker
+
   transaction-service:
     build:
       context: .
       dockerfile: services/transaction-service/Dockerfile
     container_name: transaction-service
     ports:
-      - "8083:8083"
+      - "8083:8080"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   history-service:
     build:
@@ -127,12 +210,14 @@ services:
       dockerfile: services/history-service/Dockerfile
     container_name: history-service
     ports:
-      - "8084:8084"
+      - "8084:8080"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   notification-service:
     build:
@@ -140,11 +225,13 @@ services:
       dockerfile: services/notification-service/Dockerfile
     container_name: notification-service
     ports:
-      - "8085:8085"
+      - "8085:8080"
     depends_on:
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   analytics-service:
     build:
@@ -152,12 +239,14 @@ services:
       dockerfile: services/analytics-service/Dockerfile
     container_name: analytics-service
     ports:
-      - "8086:8086"
+      - "8086:8080"
     depends_on:
       - clickhouse
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
   scheduler-service:
     build:
@@ -165,14 +254,17 @@ services:
       dockerfile: services/scheduler-service/Dockerfile
     container_name: scheduler-service
     ports:
-      - "8087:8087"
+      - "8087:8080"
     depends_on:
       - postgres
       - kafka
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    profiles:
+      - docker
 
 volumes:
   postgres_data:
   clickhouse_data:
   grafana_data:
+  tempo_data:

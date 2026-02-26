@@ -1,0 +1,55 @@
+{
+  "type": "record",
+  "name": "DebitFunds",
+  "namespace": "com.bankapp.events.account.v1",
+  "doc": "Command to debit funds from an account.",
+  "fields": [
+    {
+      "name": "commandId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "Unique identifier for this command."
+    },
+    {
+      "name": "correlationId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "Identifier to correlate this command with a business transaction (e.g., transactionId)."
+    },
+    {
+      "name": "accountId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "The account to debit funds from."
+    },
+    {
+      "name": "amount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 19,
+        "scale": 4
+      },
+      "doc": "The amount to debit."
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "The currency of the amount."
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "The timestamp when the command was issued."
+    }
+  ]
+}

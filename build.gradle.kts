@@ -6,7 +6,7 @@ plugins {
     // Применяем плагины ко всем подпроектам
     base
     id("java")
-    id("org.springframework.boot") version "3.2.0" apply false
+    id("org.springframework.boot") version "3.5.9" apply false
     id("io.spring.dependency-management") version "1.1.4"
 }
 
@@ -15,12 +15,16 @@ tasks.wrapper {
     gradleVersion = "8.14"
 }
 
+
+
 allprojects {
     group = "com.bankapp"
     version = "0.0.1-SNAPSHOT"
 
     repositories {
         mavenCentral()
+        // ДОБАВЛЯЕМ ЭТОТ РЕПОЗИТОРИЙ
+        maven { url = uri("https://packages.confluent.io/maven/") }
     }
 }
 
@@ -30,16 +34,18 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
     }
 
     dependencyManagement {
         imports {
             mavenBom(SpringBootPlugin.BOM_COORDINATES)
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.0.0")
         }
     }
-    
+
     dependencies {
         // Зависимости, общие для всех сервисов
         implementation("org.springframework.boot:spring-boot-starter-web")
@@ -49,5 +55,11 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+}
+
+project(":services") {
+    tasks.named("bootJar") {
+        enabled = false
     }
 }

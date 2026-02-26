@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 001-initial-schema-user-service
-      author: gemini
+      id: 001-create-users-table
+      author: you
       changes:
         - createTable:
             tableName: users
@@ -12,32 +12,23 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
+
               - column:
                   name: email
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
                     unique: true
+
               - column:
-                  name: password_hash
+                  name: password
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-              - column:
-                  name: created_at
-                  type: TIMESTAMP WITH TIME ZONE
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: updated_at
-                  type: TIMESTAMP WITH TIME ZONE
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
+
         - createIndex:
-            indexName: idx_users_email
             tableName: users
+            indexName: idx_users_email
             columns:
               - column:
                   name: email

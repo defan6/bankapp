@@ -1,0 +1,74 @@
+{
+  "type": "record",
+  "name": "CreditFailed",
+  "namespace": "com.bankapp.events.account.v1",
+  "doc": "Event indicating that crediting funds to an account has failed.",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "Unique identifier for this event."
+    },
+    {
+      "name": "correlationId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "Identifier to correlate this event with a business transaction (e.g., transactionId)."
+    },
+    {
+      "name": "accountId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "The account to which crediting failed."
+    },
+    {
+      "name": "tryToCreditAmount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 19,
+        "scale": 4
+      },
+      "doc": "The amount that was try to credited."
+    },
+    {
+      "name": "balance",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 19,
+        "scale": 4
+      },
+      "doc": "Balance of the account before failed try to debit."
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "doc": "The reason for the failure (e.g., ACCOUNT_CLOSED_OR_BLOCKED)."
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "The timestamp when the failure occurred."
+    },
+    {
+      "name": "headers",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "doc": "Key-value map for context propagation, like tracing headers.",
+      "default": {}
+    }
+  ]
+}

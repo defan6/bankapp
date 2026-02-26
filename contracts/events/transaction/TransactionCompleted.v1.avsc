@@ -1,0 +1,63 @@
+{
+  "type": "record",
+  "name": "TransactionCompleted",
+  "namespace": "com.bankapp.events.transaction.v1",
+  "doc": "Event indicating that the transaction has successfully completed.",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "Unique identifier for this event."
+    },
+    {
+      "name": "transactionId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "The identifier of the completed transaction."
+    },
+    {
+      "name": "sourceAccountId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "The source account of the transfer."
+    },
+    {
+      "name": "destinationAccountId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      },
+      "doc": "The destination account of the transfer."
+    },
+    {
+      "name": "amount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 19,
+        "scale": 4
+      },
+      "doc": "The amount transferred."
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "The currency of the amount."
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "The timestamp when the transaction was completed."
+    }
+  ]
+}

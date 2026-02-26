@@ -1,16 +1,167 @@
-// common/build.gradle.kts
-// Этот проект будет JAR-файлом, а не исполняемым Spring Boot приложением.
-// Поэтому отключаем стандартную задачу сборки Spring Boot.
-tasks.getByName("bootJar") {
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+import java.util.*
+
+plugins {
+    id("java-library")
+    id("org.openapi.generator") version "7.0.0"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.8.0"
+}
+
+tasks.named("bootJar") {
     enabled = false
 }
 
-// Этот модуль может содержать общие DTO, события, исключения и т.д.
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+/* ---------------- DEPENDENCIES ---------------- */
+
 dependencies {
-    // Зависимость от Kafka, чтобы определять события
     implementation("org.springframework.kafka:spring-kafka")
-    // Зависимость от JPA для общих Entities, если они будут
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    // Для Feign Client интерфейсов
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+    implementation("jakarta.validation:jakarta.validation-api")
+    implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.16")
+
+    implementation("io.confluent:kafka-avro-serializer:7.5.1")
+    api("org.apache.avro:avro:1.11.3")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+
+    // Lombok
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    // MapStruct
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+}
+
+/* ---------------- OPENAPI GENERATION ---------------- */
+
+val openApiOutputDir = layout.buildDirectory.dir("generated/sources/openapi")
+val openApiTasks = mutableListOf<TaskProvider<GenerateTask>>()
+
+val commonApiTask = tasks.register<GenerateTask>("generateCommonApiDtos") {
+    group = "openapi"
+    description = "Generate DTOs from common.v1.yaml"
+
+    generatorName.set("spring")
+    inputSpec.set("$rootDir/contracts/api/common/common.v1.yaml")
+    outputDir.set(openApiOutputDir.map { it.dir("common").asFile.path })
+
+    modelPackage.set("com.bankapp.common.model")
+
+    configOptions.set(
+        mapOf(
+            "useJakartaEe" to "true",
+            "dateLibrary" to "java8-localdatetime",
+            "serializationLibrary" to "jackson",
+            "hideGenerationTimestamp" to "true"
+        )
+    )
+
+
+    globalProperties.set(
+        mapOf(
+            "models" to "",
+            "apis" to "false",
+            "supportingFiles" to "false"
+        )
+    )
+}
+openApiTasks += commonApiTask
+sourceSets.main.get().java.srcDir(
+    openApiOutputDir.map { it.dir("common").dir("src/main/java") }
+)
+
+
+fileTree("$rootDir/contracts/api") {
+    include("**/*-api.v1.yaml")
+    exclude("**/common/**")
+}.files.forEach { specFile ->
+
+    val serviceDir = specFile.parentFile.name // account-service
+    val servicePackage = serviceDir.replace("-", "")
+    val taskSuffix = serviceDir
+        .split("-")
+        .joinToString("") { it.replaceFirstChar { c -> c.titlecase(Locale.getDefault()) } }
+
+    val task = tasks.register<GenerateTask>("generate${taskSuffix}Api") {
+        group = "openapi"
+        description = "Generate OpenAPI client for $serviceDir"
+
+        generatorName.set("spring")
+        inputSpec.set(specFile.absolutePath)
+        outputDir.set(openApiOutputDir.map { it.dir(serviceDir).asFile.path })
+
+        apiPackage.set("com.bankapp.common.client.$servicePackage.api")
+        modelPackage.set("com.bankapp.common.client.$servicePackage.model")
+
+        apiNameSuffix.set("ApiV1") // suffix
+
+        configOptions.set(
+            mapOf(
+                "interfaceOnly" to "true",
+                "library" to "spring-cloud",
+                "useSpringBoot3" to "true",
+                "useJakartaEe" to "true",
+                "dateLibrary" to "java8-localdatetime",
+                "serializationLibrary" to "jackson",
+                "useTags" to "true"
+                // User, Account from contracts *.yaml
+            )
+        )
+
+        globalProperties.set(
+            mapOf(
+                "apiDocs" to "false",
+                "modelDocs" to "false",
+                "apiTests" to "false",
+                "modelTests" to "false"
+            )
+        )
+    }
+
+    openApiTasks += task
+
+    // Lazily add the generated sources to the source set
+    sourceSets.main.get().java.srcDir(
+        openApiOutputDir.map { it.dir(serviceDir).dir("src/main/java") }
+    )
+}
+
+tasks.withType<GenerateTask> {
+    apiNameSuffix.set("ApiV1")
+}
+
+/* ---------------- AVRO GENERATION ---------------- */
+
+tasks.named<com.github.davidmc24.gradle.plugin.avro.GenerateAvroJavaTask>("generateAvroJava") {
+    setSource(
+        fileTree("$rootDir/contracts/events") {
+            include("**/*.avsc")
+        }
+    )
+}
+
+/* ---------------- SOURCES ---------------- */
+
+sourceSets {
+    main {
+        java {
+            // Avro sources
+            srcDir(layout.buildDirectory.dir("generated/sources/avro/java"))
+        }
+    }
+}
+
+/* ---------------- TASK ORDER ---------------- */
+
+tasks.named("compileJava") {
+    dependsOn(openApiTasks)
+    dependsOn("generateAvroJava")
 }

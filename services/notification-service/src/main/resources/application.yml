@@ -4,12 +4,16 @@
 spring:
   application:
     name: notification-service
+  profiles:
+    default: local
   kafka:
     consumer:
       group-id: notification-service-group
       auto-offset-reset: earliest
-server:
-  port: 8085
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer # Указываем Avro десериализатор
+    properties:
+      specific.avro.reader: true # Включаем чтение в конкретные Avro-классы
 logging:
   level:
     root: INFO
@@ -21,23 +25,3 @@ management:
   endpoint:
     health:
       show-details: always
----
-# ===================================
-#    ПРОФИЛЬ 'docker' (по умолчанию)
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: docker
-  kafka:
-    bootstrap-servers: kafka:9092
----
-# ===================================
-#       ПРОФИЛЬ 'local'
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: local
-  kafka:
-    bootstrap-servers: localhost:29092

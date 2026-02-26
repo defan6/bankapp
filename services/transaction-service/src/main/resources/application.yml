@@ -4,21 +4,22 @@
 spring:
   application:
     name: transaction-service
+  profiles:
+    default: local
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
     consumer:
-      group-id: transaction-service-group
       auto-offset-reset: earliest
-server:
-  port: 8083
+    producer: # Kafka Producer configuration
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: ${spring.kafka.properties.schema.registry.url} # Referencing the property that will be defined in specific profiles
 logging:
   level:
     root: INFO
@@ -30,45 +31,4 @@ management:
   endpoint:
     health:
       show-details: always
----
-# ===================================
-#    ПРОФИЛЬ 'docker' (по умолчанию)
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: docker
-  datasource:
-    url: jdbc:postgresql://postgres:5432/bankapp
-    username: bankapp
-    password: bankapp
-    driver-class-name: org.postgresql.Driver
-  kafka:
-    bootstrap-servers: kafka:9092
-  # Конфигурация Feign для профиля 'docker'
-  feign:
-    client:
-      config:
-        account-service: # имя Feign клиента из @FeignClient(name = "account-service")
-          url: http://account-service:8082 # Имя Docker-сервиса
----
-# ===================================
-#       ПРОФИЛЬ 'local'
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:postgresql://localhost:5432/bankapp
-    username: bankapp
-    password: bankapp
-    driver-class-name: org.postgresql.Driver
-  kafka:
-    bootstrap-servers: localhost:29092
-  # Конфигурация Feign для профиля 'local'
-  feign:
-    client:
-      config:
-        account-service: # имя Feign клиента из @FeignClient(name = "account-service")
-          url: http://localhost:8082 # Локальный порт Account Service
+

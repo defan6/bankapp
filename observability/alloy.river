@@ -1,0 +1,84 @@
+logging {
+    level = "info"
+}
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    traces  = [otelcol.processor.attributes.common.input]
+    metrics = [otelcol.processor.attributes.common.input]
+    logs    = [otelcol.processor.attributes.common.input]
+  }
+}
+
+
+discovery.docker "docker_containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+
+otelcol.processor.attributes "common" {
+    action {
+        key     = "cluster"
+        value   = "local"
+        action  = "upsert"
+    }
+
+
+    output {
+        traces  = [otelcol.processor.batch.default.input]
+        metrics = [otelcol.processor.batch.default.input]
+        logs    = [otelcol.processor.batch.default.input]
+    }
+}
+
+
+otelcol.processor.batch "default" {
+    output {
+        metrics = [otelcol.exporter.prometheus.default.input]
+        logs    = [otelcol.exporter.loki.default.input]
+        traces  = [otelcol.exporter.otlp.tempo.input]
+    }
+}
+
+
+prometheus.remote_write "metrics" {
+    endpoint {
+        url = "http://prometheus:9090/api/v1/write"
+    }
+}
+
+
+loki.write "logs" {
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}
+
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.metrics.receiver]
+}
+
+
+otelcol.exporter.loki "default" {
+  forward_to = [loki.write.logs.receiver]
+}
+
+
+otelcol.exporter.otlp "tempo" {
+    client {
+        endpoint = "tempo:4317"
+        tls {
+            insecure = true
+        }
+    }
+}
+
+

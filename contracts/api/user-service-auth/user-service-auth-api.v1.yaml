@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: User Service Auth Business Logic API
+  version: 1.0.0
+  description: API for auth business logic
+
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: register
+      operationId: register
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '409':
+          description: Conflict - email is already taken
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+  /api/v1/auth/login:
+    post:
+      summary: Authenticate a user and get JWT tokens
+      operationId: login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+  /api/v1/auth/refresh:
+    post:
+      summary: Refresh access token using refresh token
+      operationId: refresh
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshAccessTokenResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+  /api/v1/auth/logout:
+    post:
+      summary: Logout user and invalidate refresh token
+      operationId: logout
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '400':
+          description: Bad Request - Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+  
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    RefreshAccessTokenResponse:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+        accessToken:
+          type: string
+    LogoutRequest:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+        - refreshToken
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    RegisterResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email

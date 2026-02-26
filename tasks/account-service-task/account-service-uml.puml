@@ -1,0 +1,137 @@
+@startuml
+!theme plain
+title Account Service - Component Diagram (Corrected)
+
+' External Systems
+database "PostgreSQL DB" as db
+queue "Kafka Commands\n(account-commands)" as kafka_commands
+queue "Kafka Events\n(account-events)" as kafka_events
+
+' The Account Service Boundary
+package "Account Service" as account_service_pkg {
+  
+  ' Entrypoints
+  component "[REST Controller]" as rest_controller
+  component "[Kafka Listener]" as kafka_listener
+
+  ' Core Logic
+  component "[Account Service Logic\n(Facade)]" as service_logic
+
+  ' Data Access Layer
+  component "[Account Repository]" as account_repo
+  component "[Inbox Repository]" as inbox_repo
+  component "[Outbox Repository]" as outbox_repo
+
+  ' Asynchronous Publisher
+  component "[Message Relay]" as message_relay
+
+  ' Internal Connections
+  rest_controller --> service_logic
+  kafka_listener --> service_logic
+  
+  service_logic --> account_repo
+  service_logic --> inbox_repo
+  service_logic --> outbox_repo
+
+  account_repo --|> db
+  inbox_repo --|> db
+  outbox_repo --|> db
+
+  message_relay --> outbox_repo
+}
+
+' External Connections to Entrypoints
+"API Gateway" --> rest_controller : REST
+kafka_commands --> kafka_listener : Commands
+
+' External Connection for the Relay
+message_relay --> kafka_events : Publishes Events
+
+@enduml
+
+@startuml
+!theme plain
+title Account Service - Sequence Diagram (Processing DebitFunds Command)
+
+participant "Kafka\n(account-commands)" as kafka
+participant "Account Service\n(Kafka Listener)" as listener
+participant "Account Service\n(Command Handler)" as handler
+database "PostgreSQL DB" as db
+
+autonumber
+
+kafka -> listener : DebitFunds Command (commandId, correlationId, ...)
+activate listener
+listener -> handler : handleDebitFunds(command)
+activate handler
+
+handler -> db : START TRANSACTION
+activate db
+db --/ handler : Transaction Started
+deactivate db
+
+alt Command not processed (Idempotent Consumer)
+    handler -> db : INSERT INTO Inbox (commandId)
+    activate db
+    db --> handler : Success (commandId inserted)
+    deactivate db
+
+    handler -> db : SELECT FROM Accounts WHERE id = ?
+    activate db
+    db --> handler : Account (balance, version)
+    deactivate db
+
+    alt Insufficient Funds
+        handler -> db : INSERT INTO Outbox (DebitFailed event)
+        activate db
+        db --> handler : Success
+        deactivate db
+    else Sufficient Funds (Optimistic Locking)
+        handler -> db : UPDATE Accounts SET balance = ..., version = version + 1 WHERE id = ? AND version = ?
+        activate db
+        alt Update successful (1 row affected)
+            db --> handler : Success (Account updated)
+            deactivate db
+            handler -> db : INSERT INTO Outbox (FundsDebited event)
+            activate db
+            db --> handler : Success
+            deactivate db
+        else Update failed (0 rows affected - Optimistic Lock conflict)
+            db --> handler : Failure (Optimistic Lock)
+            deactivate db
+            handler -> db : ROLLBACK TRANSACTION
+            activate db
+            db --/ handler : Transaction Rolled Back
+            deactivate db
+            handler --> listener : Retry or Error
+            listener --> kafka : NACK (or let lease expire)
+            end
+        end
+    end
+else Command already processed (Idempotent Consumer)
+    handler -> db : INSERT INTO Inbox (commandId)
+    activate db
+    db --> handler : Duplicate Key Exception
+    deactivate db
+    handler -> listener : Ignored
+end
+
+handler -> db : COMMIT TRANSACTION
+activate db
+db --/ handler : Transaction Committed
+deactivate db
+
+note right of handler
+  The transaction is now committed.
+  The created event is safely stored in the Outbox table.
+  The asynchronous Message Relay process will now pick it up
+  and publish it to Kafka.
+end note
+
+
+handler --> listener : Success
+deactivate handler
+listener --> kafka : ACK
+deactivate listener
+
+@enduml

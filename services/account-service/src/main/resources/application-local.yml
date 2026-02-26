@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/account_service_db}
+    username: ${DB_USERNAME:bankapp}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29098}
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081} # Schema Registry URL for local environment
+  liquibase:
+    default-schema: public
+server:
+  port: ${SERVER_PORT:8082}
+management:
+  otlp:
+    endpoint: ${OTLP_ENDPOINT:http://localhost:4318}
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces
+
+app:
+  scheduler:
+    outbox.enabled: ${SCHEDULER_OUTBOX_ENABLED:true}
+    initial-delay: ${SCHEDULER_INITIAL_DELAY:10000} # Wait 10 seconds before first poll
+    fixed-delay: ${SCHEDULER_FIXED_DELAY:5000} # Poll every 5 seconds

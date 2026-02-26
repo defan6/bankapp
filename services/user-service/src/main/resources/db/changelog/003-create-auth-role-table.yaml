@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-auth-role-table
+      author: you
+      changes:
+        - createTable:
+            tableName: auth_role
+            columns:
+              - column:
+                  name: auth_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: roles
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: auth_role
+            baseColumnNames: auth_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_auth_role_user
+
+        - addUniqueConstraint:
+            tableName: auth_role
+            columnNames: auth_id, roles
+            constraintName: uq_auth_role_user_role

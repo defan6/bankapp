@@ -4,12 +4,12 @@
 spring:
   application:
     name: analytics-service
+  profiles:
+    default: local
   kafka:
     consumer:
       group-id: analytics-service-group
       auto-offset-reset: earliest
-server:
-  port: 8086
 logging:
   level:
     root: INFO
@@ -21,33 +21,3 @@ management:
   endpoint:
     health:
       show-details: always
----
-# ===================================
-#    ПРОФИЛЬ 'docker' (по умолчанию)
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: docker
-  datasource:
-    url: jdbc:clickhouse://clickhouse:8123/default
-    username: default
-    password: ""
-    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
-  kafka:
-    bootstrap-servers: kafka:9092
----
-# ===================================
-#       ПРОФИЛЬ 'local'
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:clickhouse://localhost:8123/default
-    username: default
-    password: ""
-    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
-  kafka:
-    bootstrap-servers: localhost:29092

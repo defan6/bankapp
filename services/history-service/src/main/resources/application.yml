@@ -1,9 +1,8 @@
-# ===================================
-#      ОБЩИЕ НАСТРОЙКИ
-# ===================================
 spring:
   application:
     name: history-service
+  profiles:
+    default: local
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
   jpa:
@@ -17,8 +16,6 @@ spring:
     consumer:
       group-id: history-service-group
       auto-offset-reset: earliest
-server:
-  port: 8084
 logging:
   level:
     root: INFO
@@ -30,33 +27,3 @@ management:
   endpoint:
     health:
       show-details: always
----
-# ===================================
-#    ПРОФИЛЬ 'docker' (по умолчанию)
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: docker
-  datasource:
-    url: jdbc:postgresql://postgres:5432/bankapp
-    username: bankapp
-    password: bankapp
-    driver-class-name: org.postgresql.Driver
-  kafka:
-    bootstrap-servers: kafka:9092
----
-# ===================================
-#       ПРОФИЛЬ 'local'
-# ===================================
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:postgresql://localhost:5432/bankapp
-    username: bankapp
-    password: bankapp
-    driver-class-name: org.postgresql.Driver
-  kafka:
-    bootstrap-servers: localhost:29092

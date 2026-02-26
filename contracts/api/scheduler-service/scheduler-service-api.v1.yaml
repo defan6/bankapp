@@ -1,0 +1,145 @@
+openapi: 3.0.3
+info:
+  title: Scheduler Service API
+  version: 1.0.0
+  description: API for managing scheduled payments.
+
+paths:
+  /api/schedules:
+    post:
+      summary: Create a new scheduled payment
+      operationId: createSchedule
+      tags:
+        - Scheduler
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleRequest'
+      responses:
+        '201':
+          description: Scheduled payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+    get:
+      summary: Get all scheduled payments for the current user
+      operationId: getSchedules
+      tags:
+        - Scheduler
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Scheduled payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleDto'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+
+  /api/schedules/{scheduleId}:
+    delete:
+      summary: Delete a scheduled payment
+      operationId: deleteSchedule
+      tags:
+        - Scheduler
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Scheduled payment deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '../common/common.v1.yaml#/components/schemas/ApiErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ScheduleRequest:
+      type: object
+      properties:
+        fromAccountId:
+          type: string
+          format: uuid
+        toAccountId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        cronExpression:
+          type: string
+      required:
+        - fromAccountId
+        - toAccountId
+        - amount
+        - cronExpression
+
+    ScheduleDto:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+          format: uuid
+        fromAccountId:
+          type: string
+          format: uuid
+        toAccountId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        cronExpression:
+          type: string

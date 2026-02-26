@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/history_service_db
+    username: bankapp
+    password: password
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: localhost:29098
+server:
+  port: 8084
+management:
+  otlp:
+    endpoint: http://localhost:4318
+    metrics:
+      export:
+        url: ${management.otlp.endpoint}/v1/metrics
+    tracing:
+      export:
+        url: ${management.otlp.endpoint}/v1/traces
